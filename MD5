@@ -1,0 +1,16 @@
+f190981973c904c33f4b28fedc12bfc8 *DESCRIPTION
+22624577e82ec2f244d2624649f07051 *NAMESPACE
+178fd5a4914a28e31a53c3eee5378898 *R/bisse2hisse.R
+6c52c3facbb791c763e99cc10f825d57 *R/hisse.R
+a824ee3f2577024d8f6a0a7fd97785f0 *R/marginRecon.R
+f7ce44256dc6e2a09e5f6af241fac040 *R/supportRegion.R
+aaa10eff4cf1b558ffc9f6cfe0ba9029 *R/transMat.R
+dcf134e14e01661b4652a29936b04d2a *man/bisse2hisse.Rd
+0df3c9e057dc7467d463dbf242e61e02 *man/hisse.Rd
+7935875516623e9f494a60833f14f90a *man/marginRecon.Rd
+8fed3ab55e5477c9faa8fa9b9b6efe27 *man/supportRegion.Rd
+e5614a5f2fb2851de34b0db57f864233 *man/transMat.Rd
+e74f70e5a5a544a5518297a145f20b86 *src/Makevars.in
+40dbfbe4f363b802ba1106408cecbad0 *src/Makevars.win
+43840eed4bb6420fa77245d7d72e5dcc *src/bisse-ext-derivs.c
+67ca36f548bd236265dcf4a7fd2db323 *src/hisse-ext-derivs.c

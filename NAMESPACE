@@ -1,0 +1,9 @@
+useDynLib(hisse)
+
+export(hisse, MarginRecon, SupportRegion, TransMatMaker, ParDrop, ParEqual, BisseToHisse)
+import(ape, deSolve, GenSA, subplex)
+importFrom(parallel, mclapply)
+exportClasses('hisse.fit','hisse.states', 'hisse.support')
+S3method(print, hisse.fit)
+S3method(print, hisse.states)
+S3method(print, hisse.support)
