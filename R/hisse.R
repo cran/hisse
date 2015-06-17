@@ -15,6 +15,14 @@ hisse <- function(phy, data, f=c(1,1), hidden.states=TRUE, turnover.anc=c(1,1,0,
 		stop("You chose a hidden state but this is not reflected in the transition matrix")
 	}
 	
+	if(sum(turnover.beta) > 0 | sum(eps.beta) > 0){
+		warning("You chose a time dependent model. This is currently untested -- Good luck.")
+	}
+
+	if(!is.null(timeslice)){
+		stop("You chose a time slice model. This is currently unavailable.")
+	}
+	
 	#Some basic checks:
 	if(!length(turnover.anc) == 4){
 		turnover.anc<-c(turnover.anc,0,0)
@@ -69,7 +77,7 @@ hisse <- function(phy, data, f=c(1,1), hidden.states=TRUE, turnover.anc=c(1,1,0,
 		trans.rate.slice = rep(0, 12)	
 	}else{
 		turnover.slice = turnover.anc
-		eps.slice = eps.slice
+		eps.slice = eps.anc
 		trans.rate.slice = trans.rate	
 	}	
 	#Add in turnover slice factors:
@@ -93,7 +101,16 @@ hisse <- function(phy, data, f=c(1,1), hidden.states=TRUE, turnover.anc=c(1,1,0,
 	data.new<-data.frame(data[,2], data[,2], row.names=data[,1])
 	data.new<-data.new[phy$tip.label,]
 	#This is used to scale starting values to account for sampling:
-	samp.freq.tree <- Ntip(phy) / sum(table(data.new[,1]) / f)
+	if(length(f) == 2){
+		samp.freq.tree <- Ntip(phy) / sum(table(data.new[,1]) / f)
+	}else{
+		if(length(f) == Ntip(phy)){
+			samp.freq.tree <- Ntip(phy) / sum(table(data.new[,1]) / mean(f))
+		}else{
+			stop("The vector of sampling frequencies does not match the number of tips in the tree.")
+		}
+	}
+
 	if(sum(eps.anc)==0){
 		init.pars <- starting.point.generator(phy, 2, samp.freq.tree, yule=TRUE)
 		names(init.pars) <- NULL
@@ -139,7 +156,7 @@ hisse <- function(phy, data, f=c(1,1), hidden.states=TRUE, turnover.anc=c(1,1,0,
 	solution.tmp[solution.tmp==0] = 1
 	solution[21:56] = solution.tmp
 	
-	obj = list(loglik = loglik, AIC = -2*loglik+2*np, AICc = -2*loglik+(2*np*(Ntip(phy)/(Ntip(phy)-np-1))), solution=solution, index.par=pars, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, timeslice=timeslice, phy=phy, data=data, output.type=output.type) 
+	obj = list(loglik = loglik, AIC = -2*loglik+2*np, AICc = -2*loglik+(2*np*(Ntip(phy)/(Ntip(phy)-np-1))), solution=solution, index.par=pars, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, timeslice=timeslice, phy=phy, data=data, output.type=output.type, max.tol=max.tol) 
 	class(obj) = "hisse.fit"		
 	
 	return(obj)		
@@ -226,9 +243,16 @@ DownPass <- function(phy, cache, hidden.states, bad.likelihood=-10000000000, con
 		
 	#Initializes the tip sampling and sets internal nodes to be zero:
 	ncols = dim(compD)[2]
-	for(i in 1:(nb.tip)){
-		compD[i,] <- cache$f * cache$states[i,]
-		compE[i,] <- rep((1-cache$f), ncols/2)
+	if(length(cache$f) == 2){
+		for(i in 1:(nb.tip)){
+			compD[i,] <- cache$f * cache$states[i,]
+			compE[i,] <- rep((1-cache$f), ncols/2)
+		}
+	}else{
+		for(i in 1:(nb.tip)){
+			compD[i,] <- cache$f[i] * cache$states[i,]
+			compE[i,] <- rep((1-cache$f[i]), ncols/2)
+		}
 	}
 	logcomp <- c()
 	#Start the postorder traversal indexing lists by node number: 
@@ -444,7 +468,6 @@ ParametersToPass <- function(phy, data, f, model.vec, timeslice, hidden.states){
 			if(data[i]==2){states[i,1:2]=1}
 		}
 	}
-
 	if(hidden.states == TRUE){
 		states = matrix(0,Ntip(phy),4)
 		for(i in 1:Ntip(phy)){
@@ -453,7 +476,15 @@ ParametersToPass <- function(phy, data, f, model.vec, timeslice, hidden.states){
 			if(data[i]==2){states[i,1:4]=1}
 		}
 	}
-	
+	if(hidden.states == "TEST"){
+		states = matrix(0,Ntip(phy),4)
+		for(i in 1:Ntip(phy)){
+			if(data[i]==1){states[i,1]=1}
+			if(data[i]==2){states[i,2]=1}
+			if(data[i]==3){states[i,3]=1}
+			if(data[i]==4){states[i,4]=1}
+		}
+	}
 	obj$states = states
 	obj$tot_time = max(branching.times(phy))
 	obj$f = f
@@ -532,7 +563,6 @@ ParametersToPass <- function(phy, data, f, model.vec, timeslice, hidden.states){
 	
 	return(obj)
 }
-
 
 ######################################################################################################################################
 ######################################################################################################################################
@@ -645,61 +675,4 @@ print.hisse.fit <- function(x,...){
 		cat("\n")
 	}
 }
-
-######################################################################################################################################
-######################################################################################################################################
-### Code used for testing purposes:
-######################################################################################################################################
-######################################################################################################################################
-
-#Conditioning on survival:
-#diversitree: root.obs = -159.71; root.flat=-160.0392;
-#me as of now: root.obs = -159.71; root.flat=-160.0392;
-
-#Not conditioning on survival:
-#diversitree: root.obs = -161.6475; root.flat=-162.331;
-#me as of now: root.obs = -161.6475 root.flat=-162.331;
-
-#hidden.states=TRUE
-#phy2 <- read.tree("test.tre")
-#phy2$node.label = NULL
-#trait <- read.delim("test.data")
-#data <- data.frame(sim.dat[,2], sim.dat[,2], row.names=sim.dat[,1])
-#data[,1] <- data[,1]-1
-#data <- data.frame(trait[,2], trait[,2], row.names=trait[,1])
-#data <- data[phy2$tip.label,]
-#pars.bisse <- c(0.1+0.03, 0.2+0.03, 0, 0, .03/.1, 0.03/.2, 0, 0, 0.01, 0, 0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0)
-#model.vec = c(pars.bisse, rep(1,36))
-#cache = ParametersToPass(phy2, data[,1], model.vec, f=c(1,1), timeslice=NULL, hidden.states=hidden.states) 
-#cache$turnover.beta.factor0 = 1 / dbeta(0.1, 1, 1)
-#cache$eps.beta.factor0 = 1 / dbeta(0.1, 1, 1)
-#cache$turnover.beta.factor1 = 1 / dbeta(0.1, 1, 1)
-#cache$eps.beta.factor1 = 1 / dbeta(0.1, 1, 1)
-#cache$turnover.beta.factorA = 1 / dbeta(0.1, 1, 1)
-#cache$eps.beta.factorA = 1 / dbeta(0.1, 1, 1)
-#cache$turnover.beta.factorB = 1 / dbeta(0.1, 1, 1)
-#cache$eps.beta.factorB = 1 / dbeta(0.1, 1, 1)
-
-#ll <- DownPass(phy2, cache, hidden.states=hidden.states, root.type="madfitz", condition.on.survival=TRUE)
-
-#BiSSE ancestral reconstruction
-#pars <- c(0.1, 0.2, 0.03, 0.03, 0.01, 0.01)
-#state<-structure(trait[,2],names=as.character(trait[,1]))
-#lik <- make.bisse(phy, state)
-#st <- asr.marginal(lik, pars)
-
-#testing integration:
-#pars <- list(cache$tot_time, cache$timeslice, cache$turnover.trend.alpha0, cache$turnover.trend.beta0, cache$turnover.beta.factor0, cache$turnover.slice.factor0, cache$eps.trend.alpha0, cache$eps.trend.beta0, cache$eps.beta.factor0, cache$eps.slice.factor0, cache$turnover.trend.alpha1, cache$turnover.trend.beta1, cache$turnover.beta.factor1, cache$turnover.slice.factor1, cache$eps.trend.alpha1, cache$eps.trend.beta1, cache$eps.beta.factor1, cache$eps.slice.factor1, cache$turnover.trend.alphaA, cache$turnover.trend.betaA, cache$turnover.beta.factorA, cache$turnover.slice.factorA, cache$eps.trend.alphaA, cache$eps.trend.betaA, cache$eps.beta.factorA, cache$eps.slice.factorA, cache$turnover.trend.alphaB, cache$turnover.trend.betaB, cache$turnover.beta.factorB, cache$turnover.slice.factorB, cache$eps.trend.alphaB, cache$eps.trend.betaB, cache$eps.beta.factorB, cache$eps.slice.factorB, cache$x_turnover0, cache$x_eps0, cache$x_turnover1, cache$x_eps1, cache$x_turnoverA, cache$x_epsA, cache$x_turnoverB, cache$x_epsB, cache$q01, cache$q10, cache$q0A, cache$qA0, cache$q1B, cache$qB1, cache$q0B, cache$qB0, cache$q1A, cache$qA1, cache$qBA, cache$qAB, cache$q01_slice.factor, cache$q10_slice.factor, cache$q0A_slice.factor, cache$qA0_slice.factor, cache$q1B_slice.factor, cache$qB1_slice.factor, cache$q0B_slice.factor, cache$qB0_slice.factor, cache$q1A_slice.factor, cache$qA1_slice.factor, cache$qBA_slice.factor, cache$qAB_slice.factor, 4.42844025, 4.42844025)
-#NUMELEMENTS <- 68 #needed for passing in vector to C; see comment in deep42-ext-derivs.c
-#padded.pars <- rep(0, NUMELEMENTS)
-#pars <- c(unlist(pars))
-#stopifnot(length(padded.pars)<=NUMELEMENTS)
-#padded.pars[sequence(length(pars))]<-pars				
-#yini <-c(E0=0.1022749, E1=0.0856032, EA=0, EB=0, D0=0.02048596, D1=0.3774307, DA=0, DB=0)
-#times=c(4.42844025,0)							
-#prob.subtree.cal.full <- lsoda(yini, times, func = "maddison_DE_hisse", padded.pars, initfunc="initmod_hisse", dll = "hisse-ext-derivs", rtol=1e-8, atol=1e-8, hmax=10)
-#prob.subtree.cal.full[-1,-1]
-
-
-
 

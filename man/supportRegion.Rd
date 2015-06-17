@@ -28,7 +28,7 @@ This function provides a means for sampling the likelihood surface quickly to es
 \item{$all.points}{all points sampled by the adaptive sampler.}
 }
 \references{
-Beaulieu, J.M, and B.C. O'Meara. In review. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In review. 
+Beaulieu, J.M, and B.C. O'Meara. In revision. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In revision. 
 
 FitzJohn R.G., Maddison W.P., and Otto S.P. 2009. Estimating trait-dependent speciation and extinction rates from incompletely resolved phylogenies. Syst. Biol. 58:595-611.
 

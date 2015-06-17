@@ -44,7 +44,6 @@ Finally, the options \dQuote{.beta} and \dQuote{timeslice} are included, but nei
 \item{$AICc}{Akaike information criterion corrected for sample-size.}
 \item{$solution}{a matrix containing the maximum likelihood estimates of the model parameters.}
 \item{$index.par}{an index matrix of the parameters being estimated.}
-\item{$opts}{the settings of optimization routine.}
 \item{$f}{user-supplied sampling frequencies.}
 \item{$hidden.states}{a logical indicating whether a hidden state was included in the model.}
 \item{$condition.on.surivival}{a logical indicating whether the likelihood was conditioned on the survival of two lineages and the speciation event subtending them.}
@@ -76,7 +75,7 @@ Finally, the options \dQuote{.beta} and \dQuote{timeslice} are included, but nei
 # eps.anc=c(1,2,0,3), trans.rate=trans.rates.hisse)
 }
 \references{
-Beaulieu, J.M, and B.C. O'Meara. In review. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In review. 
+Beaulieu, J.M, and B.C. O'Meara. In revision. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In revision. 
 
 FitzJohn R.G., Maddison W.P., and Otto S.P. 2009. Estimating trait-dependent speciation and extinction rates from incompletely resolved phylogenies. Syst. Biol. 58:595-611.
 

@@ -3,9 +3,9 @@
 \title{Ancestral State Estimation based on Marginal Reconstruction}
 \description{Estimates the likeliest states for both internal nodes and tips of a phylogeny using the marginal reconstruction algorithm.}
 \usage{
-MarginRecon(phy, data, f, pars, hidden.states=TRUE, timeslice=NULL, 
-condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, 
-verbose=TRUE, n.cores=NULL)
+MarginRecon(phy, data, f, pars, hidden.states=TRUE, four.state.null=FALSE, 
+timeslice=NULL, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, 
+aic=NULL, verbose=TRUE, n.cores=NULL)
 }       
 \arguments{
 \item{phy}{a phylogenetic tree, in \code{ape} \dQuote{phylo} format and with internal nodes labeled denoting the ancestral selective regimes.}
@@ -13,10 +13,12 @@ verbose=TRUE, n.cores=NULL)
 \item{f}{vector of length 2 with the estimated proportion of extant species in state 0 and 1 that are included in the phylogeny. A value of c(0.25, 0.5) means that 25 percent of species in state 0 and 50 percent of species in state 1 are included in the phylogeny. By default all species are assumed to be known.}
 \item{pars}{vector containing the MLE of the parameters.}
 \item{hidden.states}{a logical indicating whether the model includes a hidden state. The default is \code{FALSE}.} 
+\item{four.state.null}{a logical indicating whether the model is the null-four model. The default is \code{FALSE}.} 
 \item{timeslice}{a user-supplied time to split the tree.}
 \item{condition.on.survival}{a logical indicating whether the likelihood should be conditioned on the survival of two lineages and the speciation event subtending them (Nee et al. 1994). The default is \code{TRUE}.}
 \item{root.type}{indicates whether root prior assumption should based the procedure described by FitzJohn et al. 2009, \dQuote{madfitz}, or assumed equal, \dQuote{equal}.}
 \item{root.p}{a vector indicating fixed root state probabilities. The default is \code{NULL}.}
+\item{aic}{the AIC for the model being used for the reconstruction. This is used by the plotting function. The default is \code{NULL}.}
 \item{verbose}{a logical indicating whether progress should be printed to screen. The default is \code{TRUE}.}
 \item{n.cores}{specifies the number of independent processors to conduct the analysis.. The default is \code{NULL}.}
 }
@@ -27,6 +29,7 @@ In this implementation the marginal probability of state i for a focal node is s
 \code{MarginRecon} returns an object of class \code{hisse.states}. This is a list with elements:
 \item{$node.mat}{the marginal probabilities calculated for each node. They are ordered based on the elements in the edge matrix in dQuote{phylo} format.}
 \item{$tip.mat}{the marginal probabilities calculated for each tip. They are ordered based on the order of tip labels in the tree.}
+\item{$rate.mat}{a matrix that details the rates for each state combination. This is used by the plotting function.}
 \item{$phy}{a phylogenetic tree in the dQuote{phylo} format that contains the states with the highest marginal probability at each internal node.}
 }
 \examples{
@@ -46,7 +49,7 @@ In this implementation the marginal probability of state i for a focal node is s
 # hidden.states=TRUE)
 }
 \references{
-Beaulieu, J.M, and B.C. O'Meara. In review. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In review. 
+Beaulieu, J.M, and B.C. O'Meara. In revision. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In revision. 
 
 FitzJohn R.G., Maddison W.P., and Otto S.P. 2009. Estimating trait-dependent speciation and extinction rates from incompletely resolved phylogenies. Syst. Biol. 58:595-611.
 
