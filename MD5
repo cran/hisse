@@ -1,4 +1,4 @@
-0421503e09c917b16d3085e3f37a6233 *DESCRIPTION
+694fabf12cf1b904fb06d743a8c4a126 *DESCRIPTION
 70e7943c4cbc23bd6c7503897167054d *NAMESPACE
 178fd5a4914a28e31a53c3eee5378898 *R/bisse2hisse.R
 50b6727d74374664ddec6672eaa8af57 *R/hisse.R
@@ -7,13 +7,13 @@ dabbcb8138a277a73fa8a3837af4136d *R/marginRecon.R
 2bd4e0dc811b436c1cb6af4fe613c32e *R/plotHisse.R
 98b84b3d6729b5d043fcbf0522086f5e *R/simulateHisse.R
 bb937b5fbb324bef131477676cce3689 *R/singleModels.R
-10bba56960ec504aba6ff927c1c6325e *R/supportRegion.R
+2163b7573631456d831c8fbb4b0abfd4 *R/supportRegion.R
 aaa10eff4cf1b558ffc9f6cfe0ba9029 *R/transMat.R
 e37d08eb2fa1549aa593bce4aac58fd1 *README.md
-70166c6594e25789386f4ed47b2e5bf3 *build/vignette.rds
+5aa01b5dd3e1ad728a9a5c1cf99c3e13 *build/vignette.rds
 bb34cb54bea2c78c73025cdb51c1faca *inst/doc/hisse-vignette.R
-781d1848544488db0b33a140ecf9625e *inst/doc/hisse-vignette.Rmd
-b83ab4baa4ae6106d1126e180efb8212 *inst/doc/hisse-vignette.html
+408f5bd7f47a9b7831836c2a41c94b9c *inst/doc/hisse-vignette.Rmd
+076d568d4d6f081abde2ca3fd5963770 *inst/doc/hisse-vignette.html
 dcf134e14e01661b4652a29936b04d2a *man/bisse2hisse.Rd
 95619d34efe2afc2be95727b5f49e33c *man/hisse.Rd
 7fede8398c7f292fcb8c695c51180b6f *man/hisseNull4.Rd
@@ -21,7 +21,7 @@ dcf134e14e01661b4652a29936b04d2a *man/bisse2hisse.Rd
 3132401ba50617d3a4d5a9ee00800bf0 *man/plotHisse.Rd
 f261bfaac70ef3782d49e6556985d142 *man/simToPhylo.Rd
 d60dbc23e0fb36d46e65b47125dfa591 *man/simulateHisse.Rd
-3884a642bcd42ca24e5372d1bb386bfe *man/supportRegion.Rd
+712b886efeb9666d79a08e5ea69dc482 *man/supportRegion.Rd
 5e695e3f26cb1dd7f700a2a44206da2f *man/transMat.Rd
 e74f70e5a5a544a5518297a145f20b86 *src/Makevars.in
 40dbfbe4f363b802ba1106408cecbad0 *src/Makevars.win
@@ -31,7 +31,7 @@ e74f70e5a5a544a5518297a145f20b86 *src/Makevars.in
 c63bfdef238700166a40686e07021eeb *tests/testthat.R
 635cbaa694c0ed7748d5d23183217f17 *tests/testthat/test_likelihood.R
 2ed00739e87e4765e4194aba3840fe29 *tests/testthat/test_simulator.R
-781d1848544488db0b33a140ecf9625e *vignettes/hisse-vignette.Rmd
+408f5bd7f47a9b7831836c2a41c94b9c *vignettes/hisse-vignette.Rmd
 f9201e5951c54ff06c528b91c8dc0506 *vignettes/testrecon1.Rsave
 683c3791c94e5961175b960fcd87bf19 *vignettes/testrecon2.Rsave
 bfb7211c657474305cdabf8680943047 *vignettes/testrecon3.Rsave
