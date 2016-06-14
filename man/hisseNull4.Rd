@@ -6,7 +6,8 @@
 hisse.null4(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2), 
 eps.anc=rep(c(1,2,3,4),2), trans.type="equal", condition.on.survival=TRUE, 
 root.type="madfitz", root.p=NULL,  output.type="turnover", sann=FALSE, 
-sann.its=10000, max.tol=.Machine$double.eps^.25)
+sann.its=10000, bounded.search=FALSE, max.tol=.Machine$double.eps^.25,
+starting.vals=NULL, turnover.upper=50, eps.upper=50, trans.upper=100)
 }       
 \arguments{
 \item{phy}{a phylogenetic tree, in \code{ape} \dQuote{phylo} format and with internal nodes labeled denoting the ancestral selective regimes.}
@@ -21,7 +22,12 @@ sann.its=10000, max.tol=.Machine$double.eps^.25)
 \item{output.type}{indicates whether the rates should be printed onscreen as the optimized variables, \dQuote{turnover}, transformed to reflect net diversification, \dQuote{net.div}, or transformed to reflect \eqn{\lambda}{lambda} and \eqn{\mu}{mu}, \dQuote{raw}.}
 \item{sann}{a logical indicating whether a two-step optimization procedure is to be used. The first includes a simulate annealing approach, with the second involving a refinement using \code{subplex}. The default is \code{FALSE}.}
 \item{sann.its}{a numeric indicating the number of times the simulated annealing algorithm should call the objective function.}
+\item{bounded.search}{a logical indicating whether or not bounds should be enforced during optimization. The default is is \code{FALSE}.}
 \item{max.tol}{supplies the relative optimization tolerance to \code{subplex}.}
+\item{starting.vals}{a vector of starting values to be used instead of the default settings. These are just three values given in the following order: turnover (1), extinction fraction (2), and a single transition rate (3)}
+\item{turnover.upper}{sets the upper bound for the turnover parameters.}
+\item{eps.upper}{sets the upper bound for the extinction fraction parameters.}
+\item{trans.upper}{sets the upper bound for the transition rate parameters.}
 }
 \details{
 This function sets up and executes a four-state trait independent HiSSE model. The model closely follows \code{hisse}.
@@ -48,6 +54,8 @@ For user-specified \dQuote{root.p}, you should specify the probability for each 
 \item{$trans.type}{the user-specified transition model.}
 \item{$trans.mat}{the index matrix that specifies the free parameters in the transition model.} 
 \item{$max.tol}{relative optimization tolerance.}
+\item{$upper.bounds}{the vector of upper limits to the optimization search.}
+\item{$lower.bounds}{the vector of lower limits to the optimization search.}
 }
 \examples{
 ## Not run
@@ -58,7 +66,7 @@ For user-specified \dQuote{root.p}, you should specify the probability for each 
 # sim.dat <- data.frame(names(phy$tip.state), phy$tip.state)
 
 ## Fit null-four HiSSE:
-# pp.hisse.null <- hisse(phy, sim.dat, turnover.anc=rep(c(1,2,3,4),2), 
+# pp.hisse.null <- hisse.null4(phy, sim.dat, turnover.anc=rep(c(1,2,3,4),2), 
 # eps.anc=rep(c(1,2,3,4),2), trans.type="equal")
 
 ## Fit null-two HiSSE model:
@@ -69,7 +77,7 @@ For user-specified \dQuote{root.p}, you should specify the probability for each 
 # eps.anc=c(1,1,2,2), trans.rate=trans.rates.hisse)
 }
 \references{
-Beaulieu, J.M, and B.C. O'Meara. In revision. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In revision. 
+Beaulieu, J.M, and B.C. O'Meara. 2016. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. In press. 
 }
 
 \author{Jeremy M. Beaulieu}

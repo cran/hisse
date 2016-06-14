@@ -5,7 +5,7 @@
 ######################################################################################################################################
 ######################################################################################################################################
 
-hisse.null4 <- function(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2), eps.anc=rep(c(1,2,3,4),2), trans.type = "equal", condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, output.type="turnover", sann=FALSE, sann.its=10000, max.tol=.Machine$double.eps^.25){
+hisse.null4 <- function(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2), eps.anc=rep(c(1,2,3,4),2), trans.type = "equal", condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, output.type="turnover", sann=FALSE, sann.its=10000, bounded.search=FALSE, max.tol=.Machine$double.eps^.25, starting.vals=NULL, turnover.upper=50, eps.upper=50, trans.upper=100){
 	
 	#Some basic formatting of parameters:
 	phy$node.label <- NULL	
@@ -62,7 +62,16 @@ hisse.null4 <- function(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2), eps
 	if(sum(eps.anc)==0){
 		init.pars <- starting.point.generator(phy, 2, samp.freq.tree, yule=TRUE)
 		names(init.pars) <- NULL
-		def.set.pars <- c(rep(log(init.pars[1]+init.pars[3]), 8), rep(log(init.pars[3]/init.pars[1]),8), rep(log(init.pars[5]), 32))
+        if(is.null(starting.vals)){
+            def.set.pars <- c(rep(log(init.pars[1]+init.pars[3]), 8), rep(log(init.pars[3]/init.pars[1]),8), rep(log(init.pars[5]), 32))
+        }else{
+            def.set.pars <- c(rep(log(starting.vals[1]), 8), rep(log(starting.vals[2]),8), rep(log(starting.vals[3]), 32))
+        }
+        if(bounded.search == TRUE){
+            upper.full <- c(rep(log(turnover.upper),8), rep(log(eps.upper),8), rep(log(trans.upper), 32))
+        }else{
+            upper.full <- c(rep(21,8), rep(21,8), rep(21, 32))
+        }
 	}else{
 		init.pars <- starting.point.generator(phy, 2, samp.freq.tree, yule=FALSE)
 		names(init.pars) <- NULL
@@ -70,33 +79,55 @@ hisse.null4 <- function(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2), eps
 		if(init.eps == 0){
 			init.eps = 1e-6
 		}
-		def.set.pars <- c(rep(log(init.pars[1]+init.pars[3]), 8), rep(log(init.eps),8), rep(log(init.pars[5]), 32))
+        if(is.null(starting.vals)){
+            def.set.pars <- c(rep(log(init.pars[1]+init.pars[3]), 8), rep(log(init.eps),8), rep(log(init.pars[5]), 32))
+        }else{
+            def.set.pars <- c(rep(log(starting.vals[1]), 8), rep(log(starting.vals[2]),8), rep(log(starting.vals[3]), 32))
+        }
+        if(bounded.search == TRUE){
+            upper.full <- c(rep(log(turnover.upper),8), rep(log(eps.upper),8), rep(log(trans.upper), 32))
+        }else{
+            upper.full <- c(rep(21,8), rep(21,8), rep(21, 32))
+        }
 	}
 	#Set initials using estimates from constant bd model:
 	np.sequence <- 1:np
 	ip <- numeric(np)
+	upper <- numeric(np)
 	for(i in np.sequence){
 		ip[i] <- def.set.pars[which(pars == np.sequence[i])[1]]
+		upper[i] <- upper.full[which(pars == np.sequence[i])[1]]
 	}
 	lower <- rep(-20, length(ip))
-	upper <- -lower
 	
 	if(sann == FALSE){
-		cat("Finished. Beginning subplex routine...", "\n")
-		out = subplex(ip, fn=DevOptimizeNull, control=list(reltol=max.tol, parscale=rep(0.1, length(ip))), pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np)
+        if(bounded.search == TRUE){
+            cat("Finished. Beginning bounded subplex routine...", "\n")
+            opts <- list("algorithm" = "NLOPT_LN_SBPLX", "maxeval" = 100000, "ftol_rel" = max.tol)
+            out = nloptr(x0=ip, eval_f=DevOptimizeNull, ub=upper, lb=lower, opts=opts, pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np)
+            solution <- numeric(length(pars))
+            solution[] <- c(exp(out$solution), 0)[pars]
+            loglik = -out$objective
+        }else{
+            cat("Finished. Beginning subplex routine...", "\n")
+            out = subplex(ip, fn=DevOptimizeNull, control=list(reltol=max.tol, parscale=rep(0.1, length(ip))), pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np)
+            solution <- numeric(length(pars))
+            solution[] <- c(exp(out$par), 0)[pars]
+            loglik = -out$value
+        }
 	}else{
 		cat("Finished. Beginning simulated annealing...", "\n")
 		out.sann = GenSA(ip, fn=DevOptimizeNull, lower=lower, upper=upper, control=list(max.call=sann.its), pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np)
 		cat("Finished. Refining using subplex routine...", "\n")
-		out = subplex(out.sann$par, fn=DevOptimizeNull, control=list(reltol=max.tol, parscale=rep(0.1, length(ip))), pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np)
+        out = nloptr(x0=out.sann$par, eval_f=DevOptimizeNull, ub=upper, lb=lower, opts=opts, pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np)
+        solution <- numeric(length(pars))
+        solution[] <- c(exp(out$solution), 0)[pars]
+        loglik = -out$objective
 	}
-	solution <- numeric(length(pars))
-	solution[] <- c(exp(out$par), 0)[pars]
-	loglik = -out$value
 	
 	cat("Finished. Summarizing results...", "\n")
 	
-	obj = list(loglik = loglik, AIC = -2*loglik+2*np, AICc = -2*loglik+(2*np*(Ntip(phy)/(Ntip(phy)-np-1))), solution=solution, index.par=pars, f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, phy=phy, data=data, output.type=output.type, trans.type=trans.type, trans.mat=trans.mat, max.tol=max.tol) 
+	obj = list(loglik = loglik, AIC = -2*loglik+2*np, AICc = -2*loglik+(2*np*(Ntip(phy)/(Ntip(phy)-np-1))), solution=solution, index.par=pars, f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, phy=phy, data=data, output.type=output.type, trans.type=trans.type, trans.mat=trans.mat, max.tol=max.tol, starting.vals=ip, upper.bounds=upper, lower.bounds=lower)
 	class(obj) = "hisse.null4.fit"		
 	
 	return(obj)		
@@ -458,7 +489,7 @@ print.hisse.null4.fit <- function(x,...){
 		param.est[6,1:2] <- c(param.est.sp.1B, param.est.mu.1B)
 		param.est[7,1:2] <- c(param.est.sp.1C, param.est.mu.1C)
 		param.est[8,1:2] <- c(param.est.sp.1D, param.est.mu.1D)		
-		names(param.est0) <- names(param.est1) <- c("lambda", "mu")	
+		names(param.est) <- c("lambda", "mu")	
 	}
 	
 	cat("Diversification Rates\n")
