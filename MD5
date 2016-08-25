@@ -1,8 +1,8 @@
-8af2525763256c8ca233618be0f72513 *DESCRIPTION
+0c006d5b2061adfd9ab28bbefcc0de47 *DESCRIPTION
 8d52ecaa4c5b80ccfe09155e0fa37300 *NAMESPACE
 178fd5a4914a28e31a53c3eee5378898 *R/bisse2hisse.R
 d0cef0d4d42e7d2948dcb8c4b434ea08 *R/hisse.R
-dd124bce3ec2fd665fbbf40811a21d85 *R/hisseNull4.R
+90f91c733e01976dacb5aaf09f37f29a *R/hisseNull4.R
 6608429dd56670a9365e43db5dd8aca1 *R/marginRecon.R
 64709935a55d26398e9c1b129f6cf61a *R/plotHisse.R
 ce09d25f125f2fbfae2792973eefe0a0 *R/simulateHisse.R
@@ -10,10 +10,10 @@ bb937b5fbb324bef131477676cce3689 *R/singleModels.R
 da001459824e2eb0743770837c681e64 *R/supportRegion.R
 aaa10eff4cf1b558ffc9f6cfe0ba9029 *R/transMat.R
 731a4aa2b50f1596451f18aaa3d37472 *README.md
-5149ece47b2712e4f6ff8c710833bfa2 *build/vignette.rds
+5aa01b5dd3e1ad728a9a5c1cf99c3e13 *build/vignette.rds
 bb34cb54bea2c78c73025cdb51c1faca *inst/doc/hisse-vignette.R
 7d3f7c45af7e5768abfd613ff92df84b *inst/doc/hisse-vignette.Rmd
-0ace0ecb9e0735fd5e9ab6d52ee8adb8 *inst/doc/hisse-vignette.html
+f5846a558980b2af85a5b3a6d8f4b7c5 *inst/doc/hisse-vignette.html
 dcf134e14e01661b4652a29936b04d2a *man/bisse2hisse.Rd
 d825d89991207f109f8c123dd02c284b *man/hisse.Rd
 8b81a8a04fa262deac679edd5ac853bd *man/hisseNull4.Rd
