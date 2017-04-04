@@ -1,9 +1,9 @@
-c4360ed3e8a00547f88aee00ed6778f6 *DESCRIPTION
-1e2e32c8d98cf83ea794c04aa63be2a5 *NAMESPACE
+ed13ffefcb94344b7eaea87d6306029b *DESCRIPTION
+54a534179c8e2ddf1e76c8b11d48b15e *NAMESPACE
 178fd5a4914a28e31a53c3eee5378898 *R/bisse2hisse.R
-036138124ee6354ccb7e7be2e35cbe48 *R/hisse.R
-ec7934bdcf8b58965339b36687625722 *R/hisseNull4.R
-50e0ae6421c0ad299138ac7ba332d1d5 *R/marginRecon.R
+3878ded4d475d9f7ac1ae271468838d6 *R/hisse.R
+d3d5a34ba3a17ab4b3866f800855d6ed *R/hisseNull4.R
+c5d2a8ca1485792db6ef54287db7de74 *R/marginRecon.R
 64709935a55d26398e9c1b129f6cf61a *R/plotHisse.R
 ce09d25f125f2fbfae2792973eefe0a0 *R/simulateHisse.R
 bb937b5fbb324bef131477676cce3689 *R/singleModels.R
@@ -24,10 +24,10 @@ c854e94037b98aa2bccb656739a3e234 *man/plotHisse.Rd
 5e695e3f26cb1dd7f700a2a44206da2f *man/transMat.Rd
 e74f70e5a5a544a5518297a145f20b86 *src/Makevars.in
 40dbfbe4f363b802ba1106408cecbad0 *src/Makevars.win
-43840eed4bb6420fa77245d7d72e5dcc *src/bisse-ext-derivs.c
+ad5bb70b04de9bc6b1839a57968e9771 *src/bisse-ext-derivs.c
 67ca36f548bd236265dcf4a7fd2db323 *src/hisse-ext-derivs.c
 504e6bc1337de6f84cb58d6f8a569100 *src/hissenull-ext-derivs.c
-83bae1486d76d23a13c9308f84b47e44 *src/init.c
+557504521429c1c21bd4f9d14a0de76e *src/registerDynamicSymbol.c
 c63bfdef238700166a40686e07021eeb *tests/testthat.R
 c4f5094912830c936fea037e43f8ffd2 *tests/testthat/test_likelihood.R
 2ed00739e87e4765e4194aba3840fe29 *tests/testthat/test_simulator.R
