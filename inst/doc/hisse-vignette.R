@@ -6,7 +6,7 @@ library(diversitree)
 set.seed(4)
 # Essentially we are setting up a model that models the evolution of two binary characters
 # Thus, we are assuming the following state combinations 1=00, 2=10, 3=01, 4=11:
-pars <- c(0.1,0.1,0.1,0.2, rep(0.03, 4), 0.01,0.01,0, 0.01, 0, 0.01, 0.01,0,0.01, 0,0.01,0.01)
+pars <- c(0.1,0.1,0.1,0.2, rep(0.03, 4), 0.01,0.01,0,0.01,0,0.01,0.01,0,0.01,0,0.01,0.01)
 phy <- tree.musse(pars, max.taxa=50, x0=1, include.extinct=FALSE)
 sim.dat <- data.frame(names(phy$tip.state), phy$tip.state)
 # Now we want to make the states associated with the second character hidden from us. So, 
@@ -50,7 +50,8 @@ trans.rates.nodual.allequal
 
 ## ---- eval=TRUE----------------------------------------------------------
 trans.rates.nodual.allequal = trans.rates.nodual
-trans.rates.nodual.allequal[!is.na(trans.rates.nodual.allequal) & !trans.rates.nodual.allequal == 0] = 1
+trans.rates.nodual.allequal[!is.na(trans.rates.nodual.allequal) & 
+                              !trans.rates.nodual.allequal == 0] = 1
 trans.rates.nodual.allequal
 
 ## ---- eval=TRUE----------------------------------------------------------
@@ -117,7 +118,8 @@ pp.recon
 plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE)
 
 ## ---- eval=TRUE----------------------------------------------------------
-plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE, rate.range=c(0,0.072))
+plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE, 
+                  rate.range=c(0,0.072))
 
 ## ---- eval=TRUE----------------------------------------------------------
 pp.recon$aic
@@ -138,7 +140,7 @@ hisse.results.list[[3]] = pp.recon
 plot.hisse.states(hisse.results.list, rate.param="net.div", show.tip.label=FALSE, rate.range=c(0,0.072))
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  #First, suck in all the files with .Rsave line ending in your working directory:
+#  # First, suck in all the files with .Rsave line ending in your working directory:
 #  files = system("ls -1 | grep .Rsave", intern=TRUE)
 #  # Create an empty list object
 #  hisse.results.list = list()

@@ -23,7 +23,7 @@ test_that("BiSSE_HiSSE_test",{
 	cache$eps.beta.factorA = 1 / dbeta(0.1, 1, 1)
 	cache$turnover.beta.factorB = 1 / dbeta(0.1, 1, 1)
 	cache$eps.beta.factorB = 1 / dbeta(0.1, 1, 1)
-	hisse.full <- hisse:::DownPass(phy, cache, hidden.states=TRUE, root.type="madfitz", condition.on.survival=TRUE)
+    hisse.full <- hisse:::DownPass(phy, cache, hidden.states=TRUE, root.type="madfitz", condition.on.survival=TRUE)
 	comparison <- identical(round(hisse.full,4), round(diversitree.full,4))
 	expect_true(comparison)
 })
@@ -64,7 +64,7 @@ test_that("MuSSE_HiSSE_test1", {
 	cache$eps.beta.factorA = 1 / dbeta(0.1, 1, 1)
 	cache$turnover.beta.factorB = 1 / dbeta(0.1, 1, 1)
 	cache$eps.beta.factorB = 1 / dbeta(0.1, 1, 1)
-	hisse.constrained <- hisse:::DownPass(phy, cache, hidden.states=TRUE, root.type="madfitz", condition.on.survival=TRUE)
+	hisse.constrained <- DownPass(phy, cache, hidden.states=TRUE, root.type="madfitz", condition.on.survival=TRUE)
 	comparison <- identical(round(hisse.constrained,4), round(diversitree.constrained,4))
 	expect_true(comparison)
 })
@@ -125,4 +125,53 @@ test_that("HiSSE_Null_Four_test", {
 	comparison <- identical(round(hisse.full,4), round(diversitree.full,4))
 	expect_true(comparison)
 })
+
+
+
+#test_that("HiGeoSSE_test1"){
+#    skip_on_cran()
+    
+#    library(diversitree)
+#    pars <- c(1.5, 0.5, 1.0, 0.7, 0.7, 2.5, 0.5)
+#    names(pars) <- diversitree:::default.argnames.geosse()
+#    set.seed(5)
+#    phy <- tree.geosse(pars, max.t=4, x0=0)
+#   lik <- make.geosse(phy, phy$tip.state)
+#    diversitree.full <- lik(pars)
+    
+#    states <- data.frame(phy$tip.state, phy$tip.state, row.names=names(phy$tip.state))
+#    states <- states[phy$tip.label,]
+#    names(pars) <- NULL
+#    model.vec <- numeric(95)
+#    model.vec[1:7] <- c(pars[1:3], pars[4:5], pars[6:7])
+#    phy$node.label <- NULL
+#    cache <- ParametersToPassHiGeoSSE(phy, states[,1], f=c(1,1,1), model.vec, hidden.states=FALSE)
+#    higeosse.full <- DownPassHiGeosse(phy=phy, cache=cache, hidden.states=FALSE, bad.likelihood=-10000000000, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL)
+#    comparison <- identical(round(higeosse.full,4), round(diversitree.full,4))
+#    expect_true(comparison)
+#}
+
+
+#test_that("HiGeoSSE_test2"){
+#    skip_on_cran()
+    
+#    library(diversitree)
+#    pars <- c(1.5, 0.5, 1.0, 0.7, 0.7, 2.5, 0.5)
+#    names(pars) <- diversitree:::default.argnames.geosse()
+#    set.seed(5)
+#    phy <- tree.geosse(pars, max.t=4, x0=0)
+#    lik <- make.geosse(phy, phy$tip.state)
+#    diversitree.full <- lik(pars)
+    
+#    states <- data.frame(phy$tip.state, phy$tip.state, row.names=names(phy$tip.state))
+#   states <- states[phy$tip.label,]
+#    names(pars) <- NULL
+#    model.vec <- numeric(95)
+#    model.vec[1:7] <- c(pars[1:3], pars[4:5], pars[6:7])
+#    phy$node.label <- NULL
+#    cache <- ParametersToPassHiGeoSSE(phy, states[,1], f=c(1,1,1), model.vec, hidden.states=TRUE)
+#    higeosse.full <- DownPassHiGeosse(phy=phy, cache=cache, hidden.states=TRUE, bad.likelihood=-10000000000, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL)
+#    comparison <- identical(round(higeosse.full,4), round(diversitree.full,4))
+#    expect_true(comparison)
+#}
 
