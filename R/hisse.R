@@ -265,7 +265,7 @@ starting.point.generator <- function(phy, k, samp.freq.tree, q.div=5, yule=FALSE
 ######################################################################################################################################
 ######################################################################################################################################
 
-DownPass <- function(phy, cache, hidden.states, bad.likelihood=-10000000000, condition.on.survival, root.type, root.p, get.phi=FALSE, node=NULL, state=NULL, ode.eps=1e-8) {
+DownPass <- function(phy, cache, hidden.states, bad.likelihood=-10000000000, condition.on.survival, root.type, root.p, get.phi=FALSE, node=NULL, state=NULL, ode.eps=0) {
 	#Some preliminaries:
 	nb.tip <- length(phy$tip.label)
 	nb.node <- phy$Nnode
@@ -340,7 +340,6 @@ DownPass <- function(phy, cache, hidden.states, bad.likelihood=-10000000000, con
 				times=c(cache$tipward.age, cache$rootward.age)
                 prob.subtree.cal.full <- lsoda(yini, times, func = "maddison_DE_hisse", padded.pars, initfunc="initmod_hisse", dllname = "hisse", rtol=1e-8, atol=1e-8)
 			}
-
 			######## THIS CHECKS TO ENSURE THAT THE INTEGRATION WAS SUCCESSFUL ###########
             if(attributes(prob.subtree.cal.full)$istate[1] < 0){
 				return(bad.likelihood)
@@ -418,7 +417,6 @@ DownPass <- function(phy, cache, hidden.states, bad.likelihood=-10000000000, con
         compD[focal,] <- compD[focal,] / tmp
         logcomp <- c(logcomp, log(tmp))
 	}
-
 	root.node <- nb.tip + 1L
 	if (is.na(sum(log(compD[root.node,]))) || is.na(log(sum(1-compE[root.node,])))){
 		return(bad.likelihood)

@@ -213,21 +213,6 @@ hr {
 <pre><code class="r">library(hisse)
 </code></pre>
 
-<pre><code>## Loading required package: ape
-</code></pre>
-
-<pre><code>## Loading required package: deSolve
-</code></pre>
-
-<pre><code>## Loading required package: GenSA
-</code></pre>
-
-<pre><code>## Loading required package: subplex
-</code></pre>
-
-<pre><code>## Loading required package: nloptr
-</code></pre>
-
 <p>And also be sure to load diversitree. We can simulate data using the multistate (MuSSE) model that can be used to create a binary character that has a relation to a &ldquo;hidden&rdquo; state:</p>
 
 <pre><code class="r">library(diversitree)
@@ -262,7 +247,7 @@ sim.dat[,2] = sim.dat[,2] - 1
 <p>However, this binary character has actually evolved under a much more complex process than what would be reflected by estimates from a BiSSE model. It is this complexity that HiSSE is trying estimate.</p>
 
 <p>##Specifying the diversification parameters
-Rather than optimizing \(\lambda_i\) and \(\mu_i\) separately, hisse optimizes transformations of these variables. Here we let \(\tau_i = \lambda_i+\mu_i\) define “net turnover”, and we let \(\epsilon_i = \mu_i / \lambda_i\) define the &ldquo;extinction fraction&rdquo;. This reparameterization alleviates problems associated with over-fitting when \(\lambda_i\) and \(\mu_i\) are highly correlated, but both matter in explaining the diversity pattern (see discussion of this issue in Beaulieu and O&#39;Meara 2016). The number of free parameters in the model for both net turnover and extinction fraction are specified as index vectors provided to the function call. Each vector contains four entries that correspond to rates associated with the observed states (0 or 1) and the hidden states (A or B). They are ordered as follows: 0A, 1A, 0B, 1B. Note that the index vector can also be set up such that parameters are linked among states or even dropped from the model entirely. </p>
+Rather than optimizing \(\lambda_i\) and \(\mu_i\) separately, hisse optimizes transformations of these variables. Here we let \(\tau_i = \lambda_i+\mu_i\) define &ldquo;net turnover&rdquo;, and we let \(\epsilon_i = \mu_i / \lambda_i\) define the &ldquo;extinction fraction&rdquo;. This reparameterization alleviates problems associated with over-fitting when \(\lambda_i\) and \(\mu_i\) are highly correlated, but both matter in explaining the diversity pattern (see discussion of this issue in Beaulieu and O&#39;Meara 2016). The number of free parameters in the model for both net turnover and extinction fraction are specified as index vectors provided to the function call. Each vector contains four entries that correspond to rates associated with the observed states (0 or 1) and the hidden states (A or B). They are ordered as follows: 0A, 1A, 0B, 1B. Note that the index vector can also be set up such that parameters are linked among states or even dropped from the model entirely. </p>
 
 <p>Let&#39;s walk through a couple of examples. Take, for instance, the following index vectors:</p>
 
@@ -407,7 +392,7 @@ trans.rates.nodual.no0B
 
 <h2>Setting up the 2-state character-independent (CID-2) model</h2>
 
-<p>In Beaulieu and O&#39;Meara (2016), we proposed two character-independent models as a means of providing a fairer comparison between trait-dependent and trait-independent models of diversification (for more details see the <em>Type I errors, Model rejection, &amp; HiSSE vs. FiSSE</em> vignette). These character-independent (CID) models explicitly assume that the evolution of a binary character is independent of the diversification process without forcing the diversification process to be constant across the entire tree. The first model, which we refer to as &ldquo;CID-2&rdquo;, contains four diversification process parameters that account for trait-dependent diversification solely on the two states of an unobserved, hidden trait. In this way, CID-2 contains the same amount of complexity in terms of diversification as a BiSSE model. The second model, which we refer to as “CID-4&quot; contains the same number of diversification parameters as in the general HiSSE model that are linked across four hidden states. In the case of the CID=4 model, we have implemented a separate function, <code>hisse.null4()</code> that should be fairly self-explanatory. However, rather than implementing a separate function for the &ldquo;CID-2&rdquo; model, we found it is easier to just set it up and test it using the <code>hisse()</code> function. This section describes how to do this.</p>
+<p>In Beaulieu and O&#39;Meara (2016), we proposed two character-independent models as a means of providing a fairer comparison between trait-dependent and trait-independent models of diversification (for more details see the <em>Type I errors, Model rejection, &amp; HiSSE vs. FiSSE</em> vignette). These character-independent (CID) models explicitly assume that the evolution of a binary character is independent of the diversification process without forcing the diversification process to be constant across the entire tree. The first model, which we refer to as &ldquo;CID-2&rdquo;, contains four diversification process parameters that account for trait-dependent diversification solely on the two states of an unobserved, hidden trait. In this way, CID-2 contains the same amount of complexity in terms of diversification as a BiSSE model. The second model, which we refer to as &ldquo;CID-4&rdquo; contains the same number of diversification parameters as in the general HiSSE model that are linked across four hidden states. In the case of the CID=4 model, we have implemented a separate function, <code>hisse.null4()</code> that should be fairly self-explanatory. However, rather than implementing a separate function for the &ldquo;CID-2&rdquo; model, we found it is easier to just set it up and test it using the <code>hisse()</code> function. This section describes how to do this.</p>
 
 <p>Remember, the goal is to set up a model where the diversification process is independent from the observed states (0 or 1) of the focal trait. In other words, diversification rate differences, if they exist, will only be associated with one of the hidden states (A or B) regardless of the state of the focal trait. Thus, the free parameters for diversification would look like this: </p>
 
@@ -472,7 +457,9 @@ trans.rates.nodual.threerates
 
 <p>Our HiSSE package provides plotting functionality in <code>plot.hisse.states()</code> for character state reconstructions of <code>class hisse.states</code> output by our <code>MarginRecon()</code> function. Specifically, the function provides an overlay of the state reconstructions on the rate estimates. There are a couple of options for how these reconstructions to be plotted. First, a single <code>hisse.states</code> object can be supplied and it will provide a heat map of the diversification rate parameter of choice. Users can choose among turnover, net diversification (&ldquo;net.div&rdquo;), speciation, extinction, or extinction fraction (&ldquo;extinction.fraction&rdquo;). I&#39;ve provided example <code>hisse.states</code> output from the example data set simulated above. This particular model assumed two diversification rate parameters &ndash; i.e., turnover.anc=c(1,1,1,2), and eps.anc=c(1,1,1,1). Let&#39;s load this file and check that everything has loaded correctly and is of the proper <code>hisse.states</code> class:</p>
 
-<pre><code class="r">load(&quot;testrecon1.Rsave&quot;)
+<pre><code class="r"># pp.recon &lt;- MarginRecon(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
+#                         , hidden.states = pp$hidden.states, aic = pp$AIC)
+load(&quot;testrecon1.Rsave&quot;) # Line above shows the command to create this result.
 class(pp.recon)
 </code></pre>
 
@@ -596,7 +583,8 @@ plot.hisse.states(hisse.results.list, rate.param=&quot;net.div&quot;, show.tip.l
 <p>Note that the above code is obviously a pretty lame way of generating a list. An even easier way would be to do something like this:</p>
 
 <pre><code class="r"># First, suck in all the files with .Rsave line ending in your working directory:
-files = system(&quot;ls -1 | grep .Rsave&quot;, intern=TRUE)
+# files = system(&quot;ls -1 | grep .Rsave&quot;, intern=TRUE) # This will not run in a Windows system.
+files = dir( pattern = &quot;*.Rsave&quot; ) # This is system independent.
 # Create an empty list object
 hisse.results.list = list()
 # Now loop through all files, adding the embedded pp.recon object in each

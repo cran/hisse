@@ -5,7 +5,7 @@
 ######################################################################################################################################
 ######################################################################################################################################
 
-SupportRegion <- function(hisse.obj, n.points=1000, scale.int=0.1, desired.delta=2, output.type="turnover", hidden.states=TRUE, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, verbose=TRUE){
+SupportRegion <- function(hisse.obj, n.points=1000, scale.int=0.1, desired.delta=2, min.number.points=10, output.type="turnover", hidden.states=TRUE, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, verbose=TRUE){
     if(class(hisse.obj) == "hisse.null4.fit"){
         phy <- hisse.obj$phy
         data <- hisse.obj$data
@@ -34,7 +34,7 @@ SupportRegion <- function(hisse.obj, n.points=1000, scale.int=0.1, desired.delta
             interval.names <- c("lnLik", "lambda.0A", "lambda.0B", "lambda.0C", "lambda.0D", "lambda.1A", "lambda.1B", "lambda.1C", "lambda.1D", "mu.0A", "mu.0B", "mu.0C", "mu.0D", "mu.1A", "mu.1B", "mu.1C", "mu.1D", "q0B0A", "q0C0A", "q0D0A", "q1A0A", "q0A0B", "q0C0B", "q0D0B", "q1B0B", "q0A0C", "q0B0C", "q0D0C", "q1C0C", "q0A0D", "q0B0D", "q0C0D", "q1D0D", "q0A1A", "q1B1A", "q1C1A", "q1D1A", "q0B1B", "q1A1B", "q1C1B", "q1D1B", "q0C1C", "q1A1C", "q1B1C", "q1D1C", "q0D1D", "q1A1D", "q1B1D", "q1C1D")
         }
 
-        interval.results <- AdaptiveConfidenceIntervalSampling(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, data=data.new, index.par=hisse.obj$index.par, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, scale.int=scale.int, hisse.null.four=TRUE)
+        interval.results <- AdaptiveConfidenceIntervalSampling(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, data=data.new, index.par=hisse.obj$index.par, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, scale.int=scale.int, hisse.null.four=TRUE, min.number.points=min.number.points)
         interval.results.final <- matrix(0, n.points+1, length(hisse.obj$index.par))
         for(i in 1:(n.points+1)){
             par.rep <- unlist(interval.results[i,-1],use.names=FALSE)
@@ -102,12 +102,18 @@ SupportRegion <- function(hisse.obj, n.points=1000, scale.int=0.1, desired.delta
             interval.results.final[,17] <- mu.1D
         }
         interval.results.in <- interval.results.final[which(interval.results.final[,1] - min(interval.results.final[,1])<=desired.delta),]
-        ci.interval = apply(interval.results.in, 2, quantile)
-        colnames(interval.results.final) <- colnames(interval.results.in) <- colnames(ci.interval) <- interval.names
-        obj = NULL
-        obj$ci <- ci.interval
-        obj$points.within.region = interval.results.in
-        obj$all.points = interval.results.final
+        if(class(interval.results.in)=="numeric"){
+            stop("Only the MLE is in the desired range. Try reducing scale.int.", call.=FALSE)
+        }else{
+            ci.interval = apply(interval.results.in, 2, quantile)
+            colnames(interval.results.final) <- colnames(interval.results.in) <- colnames(ci.interval) <- interval.names
+            obj = NULL
+            obj$ci <- ci.interval
+            obj$points.within.region = interval.results.in
+            obj$all.points = interval.results.final
+            class(obj) = "hisse.support"
+            return(obj)
+        }
     }else{
         phy <- hisse.obj$phy
         data <- hisse.obj$data
@@ -136,7 +142,7 @@ SupportRegion <- function(hisse.obj, n.points=1000, scale.int=0.1, desired.delta
             interval.names <- c("lnLik", "lambda.0A", "lambda.1A", "lambda.0B", "lambda.1B", "mu.0A", "mu.1A", "mu.0B", "mu.1B","q1A0A","q0B0A","q1B0A","q0A1A","q0B1A","q1B1A","q0A0B","q1A0B","q1B0B","q0A1B","q1A1B","q0A1B","turn.alpha.0A","turn.alpha.1A", "turn.alpha.0B", "turn.alpha.1B", "turn.beta.0A","turn.beta.1A", "turn.beta.0B", "turn.beta.1B", "eps.alpha.0A","eps.alpha.1A", "eps.alpha.0B", "eps.alpha.1B", "eps.beta.0A","eps.beta.1A", "eps.beta.0B", "eps.beta.1B", "turn.slice.0A","turn.slice.1A", "turn.slice.0B", "turn.slice.1B", "eps.slice.0A","eps.slice.1A", "eps.slice.0B", "eps.slice.1B", "q0A1A.slice","q1A0A.slice","q0A0B.slice","q0B0A.slice","q1A1B.slice","q1B1A.slice","q0A1B.slice","q1B0A.slice","q1A0B.slice","q0B1A.slice","q1B0B.slice","q0B1B.slice")
         }
 
-        interval.results <- AdaptiveConfidenceIntervalSampling(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, data=data.new, index.par=hisse.obj$index.par, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, scale.int=scale.int, hisse.null.four=FALSE)
+        interval.results <- AdaptiveConfidenceIntervalSampling(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, data=data.new, index.par=hisse.obj$index.par, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, scale.int=scale.int, hisse.null.four=FALSE, min.number.points=min.number.points)
         interval.results.final <- matrix(0, n.points+1, length(hisse.obj$index.par))
         for(i in 1:(n.points+1)){
             par.rep <- unlist(interval.results[i,-1],use.names=FALSE)
@@ -177,16 +183,19 @@ SupportRegion <- function(hisse.obj, n.points=1000, scale.int=0.1, desired.delta
             interval.results.final[,9] <- mu.1B
         }
         interval.results.in <- interval.results.final[which(interval.results.final[,1] - min(interval.results.final[,1])<=desired.delta),]
-        ci.interval = apply(interval.results.in, 2, quantile)
-        colnames(interval.results.final) <- colnames(interval.results.in) <- colnames(ci.interval) <- interval.names
-
-        obj = NULL
-        obj$ci <- ci.interval[,1:21]
-        obj$points.within.region = interval.results.in[,1:21]
-        obj$all.points = interval.results.final[,1:21]
+        if(class(interval.results.in)=="numeric"){
+            stop("Only the MLE is in the desired range. Try reducing scale.int.", call.=FALSE)
+        }else{
+            ci.interval = apply(interval.results.in, 2, quantile)
+            colnames(interval.results.final) <- colnames(interval.results.in) <- colnames(ci.interval) <- interval.names
+            obj = NULL
+            obj$ci <- ci.interval[,1:21]
+            obj$points.within.region = interval.results.in[,1:21]
+            obj$all.points = interval.results.final[,1:21]
+            class(obj) = "hisse.support"
+            return(obj)
+        }
     }
-    class(obj) = "hisse.support"
-    return(obj)
 }
 
 
@@ -298,10 +307,21 @@ GenerateValues <- function(par, lower, upper, scale.int, max.tries=100, expand.p
             min.val <- min(max(lower[i], (1-scale.int)*examined.min[i]), examined.max[i]) #just in case min is greater than max
             max.val <- max(min(upper[i], (1+scale.int)*examined.max[i]), examined.min[i])
             if(isTRUE(all.equal(min.val, max.val))) {
-              min.val <- min.val * 0.9999
-              max.val <- max.val * 1.0001
+              min.val <- min.val * (1-scale.int)
+              max.val <- max.val * (1+scale.int)
             }
             new.vals[i] <- runif(1, min.val, max.val)
+            if(rbinom(1,1,.1)==1) { #ten percent of the time, try something else
+              new.vals[i] <- max.val+100
+              ntries <- 0
+              while(new.vals[i]>max.val & ntries < 10) {
+                new.vals[i] <- min.val + rexp(1, 1/((max.val-min.val)/2))
+                ntries <- ntries + 1
+              }
+              if(new.vals[i] > max.val) {
+                new.vals[i] <- runif(1, min.val, max.val) #we give up
+              }
+            }
             if(new.vals[i]<lower[i]) {
                 pass=FALSE
             }

@@ -110,7 +110,9 @@ trans.rates.nodual.threerates
 knitr::opts_chunk$set(fig.width=7, fig.height=5)
 
 ## ---- eval=TRUE----------------------------------------------------------
-load("testrecon1.Rsave")
+# pp.recon <- MarginRecon(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
+#                         , hidden.states = pp$hidden.states, aic = pp$AIC)
+load("testrecon1.Rsave") # Line above shows the command to create this result.
 class(pp.recon)
 pp.recon
 
@@ -141,7 +143,8 @@ plot.hisse.states(hisse.results.list, rate.param="net.div", show.tip.label=FALSE
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  # First, suck in all the files with .Rsave line ending in your working directory:
-#  files = system("ls -1 | grep .Rsave", intern=TRUE)
+#  # files = system("ls -1 | grep .Rsave", intern=TRUE) # This will not run in a Windows system.
+#  files = dir( pattern = "*.Rsave" ) # This is system independent.
 #  # Create an empty list object
 #  hisse.results.list = list()
 #  # Now loop through all files, adding the embedded pp.recon object in each
