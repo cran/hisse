@@ -1,8 +1,8 @@
 ## ---- eval=TRUE----------------------------------------------------------
-library(hisse)
+suppressWarnings(library(hisse))
 
 ## ---- eval=TRUE----------------------------------------------------------
-library(diversitree)
+suppressWarnings(library(diversitree))
 set.seed(4)
 # Essentially we are setting up a model that models the evolution of two binary characters
 # Thus, we are assuming the following state combinations 1=00, 2=10, 3=01, 4=11:
@@ -151,6 +151,6 @@ plot.hisse.states(hisse.results.list, rate.param="net.div", show.tip.label=FALSE
 #  for(i in sequence(length(files))){
 #    load(files[i])
 #    hisse.results.list[[i]] = pp.recon
-#    rm(pp.recon)
 #  }
+#  rm(pp.recon)
 

@@ -4,8 +4,8 @@
 #  install_github(repo = "thej022214/hisse", ref = "master")
 
 ## ---- eval=TRUE----------------------------------------------------------
-library(hisse)
-library(diversitree)
+suppressWarnings(library(hisse))
+suppressWarnings(library(diversitree))
 
 ## ---- eval=TRUE----------------------------------------------------------
 ## Generate a list with the parameters of the model:
@@ -87,7 +87,7 @@ GetModelWeight(list.geohisse)
 #                                   pars = mod1$solution, hidden.areas = mod1$hidden.areas,
 #                                   root.type = mod1$root.type, root.p = mod1$root.p,
 #                                   aic = mod1$AIC, n.cores = 4)
-#   recon.mod2 <- MarginReconGeoSSE(phy = mod2$phy, data = mod2$data, f = mod2$f,
+#  recon.mod2 <- MarginReconGeoSSE(phy = mod2$phy, data = mod2$data, f = mod2$f,
 #                                   pars = mod2$solution, hidden.areas = mod2$hidden.areas,
 #                                   root.type = mod2$root.type, root.p = mod2$root.p,
 #                                   aic = mod2$AIC, n.cores = 4)
@@ -119,6 +119,6 @@ model.ave.rates <- GetModelAveRates(x = recon.models, type = "tips")
 head( model.ave.rates )
 
 ## ----fig1, fig.height = 15, fig.width = 5--------------------------------
-plot.geohisse.states(x = recon.models, rate.param = "net.div", type = "phylogram", 
-                     show.tip.label = FALSE, legend = "none")
+plot.geohisse.states(x = recon.models, rate.param = "net.div", type = "fan", 
+                     show.tip.label = FALSE, legend = FALSE)
 

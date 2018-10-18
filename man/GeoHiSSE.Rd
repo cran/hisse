@@ -19,9 +19,9 @@ trans.upper=100, ode.eps=0)
   area codes. Values for the areas need to be 0, 1, or 2, where 0 is the 
   widespread area '01', 1 is endemic area '0' and 2 is endemic area '1'. See 'Details'.}
 \item{f}{vector of length 3 with the estimated proportion of extant
-  species in areas 0 (or '01'), 1 (or '0'), and 2 (or '1') that are included
-  in the phylogeny. A value of c(0.25, 0.25, 0.5) means that 25 percent
-  of species in areas '01' and '0' and 50 percent of species in area '1' are
+  species in state 1 (area '0'), state 2 (area '1'), and state 0 (widespread area '01') 
+  that are included in the phylogeny. A value of c(0.25, 0.25, 0.5) means that 25 percent
+  of species in areas '0' and '1' and 50 percent of species in area '01' are
   included in the phylogeny. By default all species are assumed to be
   sampled.}
 \item{speciation}{a numeric vector of length equal to 3+(number of
@@ -49,9 +49,9 @@ model. See 'Details'.}
   the procedure described by FitzJohn et al. 2009, \dQuote{madfitz},
   assumed equal, \dQuote{equal}, or set to user, \dQuote{user}.}
 \item{root.p}{a vector indicating fixed root state probabilities. The
-  default is \code{NULL}. Order of the areas is the same as in 'data'.
-  Such that: root.p[1] = 0 (widespread area '01'); root.p[2] = 1 (endemic
-  area '0'); root.p[3] = 2 (endemic area '1').}
+  default is \code{NULL}. Order of the areas in the vector need to follow:
+  root.p[1] = 1 (endemic area '0'); root.p[2] = 2 (endemic
+  area '1'); root.p[3] = 0 (widespread area '01').}
 \item{sann}{a logical indicating whether a two-step optimization
   procedure is to be used. The first includes a simulate annealing
   approach, with the second involving a refinement using
@@ -117,7 +117,7 @@ See \code{TransMatMakerGeoHiSSE} function for more details.
 
 For user-specified \dQuote{root.p}, you should specify the probability
 for each area. If you are doing a hidden model, there will be six areas:
-0A, 1A, 2A, 0B, 1B, 2B. So if you wanted to say the root had to be in
+0A, 1A, 01A, 0B, 1B, 01B. So if you wanted to say the root had to be in
 area 0 (widespread distribution), you would specify \dQuote{root.p =
   c(0.5, 0, 0, 0.5, 0, 0)}. In other words, the root has a 50\% chance
 to be in one of the areas 0A or 0B.
@@ -134,6 +134,8 @@ parameters.}
 \item{$f}{user-supplied sampling frequencies.}
 \item{$hidden.areas}{a logical indicating whether hidden areas were included in the 
 model.}
+\item{$assume.cladogenetic}{a logical indicating whether cladogenetic events were allowed
+at nodes.}
 \item{$condition.on.surivival}{a logical indicating whether the
   likelihood was conditioned on the survival of two lineages and the speciation event 
 subtending them.}
@@ -151,17 +153,17 @@ subtending them.}
 \item{$ode.eps}{The ode.eps value used for the estimation.}
 }
 \references{
-Beaulieu, J.M, and B.C. O'Meara. 2016. Detecting hidden diversification shifts in models 
-of trait-dependent speciation and extinction. Syst. Biol. 65:583-601. 
+Caetano, D.S., B.C. O'Meara, and J.M. Beaulieu. 2018. Hidden state models improve state-dependent diversification approaches, including biogeographic models. Evolution, https://doi.org/10.1111/evo.13602
 
-FitzJohn R.G., Maddison W.P., and Otto S.P. 2009. Estimating trait-dependent speciation 
-and extinction rates from incompletely resolved phylogenies. Syst. Biol. 58:595-611.
+Beaulieu, J.M, and B.C. O'Meara. 2016. Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. 65:583-601. 
 
-Maddison W.P., Midford P.E., and Otto S.P. 2007. Estimating a binary characters effect on 
-speciation and extinction. Syst. Biol. 56:701-710.
+FitzJohn R.G., W.P. Maddison, and S.P. Otto. 2009. Estimating trait-dependent speciation and extinction rates from incompletely resolved phylogenies. Syst. Biol. 58:595-611.
 
-Nee S., May R.M., and Harvey P.H. 1994. The reconstructed evolutionary process. Philos. 
-Trans. R. Soc. Lond. B Biol. Sci. 344:305-311.
+Goldberg, E. E., L. T. Lancaster, and R. H. Ree. 2011. Phylogenetic Inference of Reciprocal Effects between Geographic Range Evolution and Diversification. Syst. Biol. 60:451-465.
+
+Maddison W.P., P.E. Midford, and S.P. Otto. 2007. Estimating a binary characters effect on speciation and extinction. Syst. Biol. 56:701-710.
+
+Nee S., R.M. May, and P.H. Harvey. 1994. The reconstructed evolutionary process. Philos. Trans. R. Soc. Lond. B Biol. Sci. 344:305-311.
 }
 
 \author{Jeremy M. Beaulieu}

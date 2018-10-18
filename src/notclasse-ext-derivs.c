@@ -42,7 +42,6 @@ void notclasse_derivs(int *neq, double *t, double *y, double *ydot, double *yout
     x0  = params_noclass[3],     /* extinction from region 0   */
     x1  = params_noclass[4],     /* extinction from 1          */
     x01  = params_noclass[5],    /* extinction from 01         */
-    
     d0_1  = params_noclass[6],   /* jumps from 0 to 1          */
     d0_01  = params_noclass[7],  /* dispersal from A to AB     */
     d1_0 = params_noclass[8],    /* jumps from 1 to 0          */
