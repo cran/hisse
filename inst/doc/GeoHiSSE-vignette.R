@@ -99,7 +99,6 @@ GetModelWeight(list.geohisse)
 #                                   pars = mod4$solution, hidden.areas = mod4$hidden.areas,
 #                                   root.type = mod4$root.type, root.p = mod4$root.p,
 #                                   aic = mod4$AIC, n.cores = 4)
-#  
 
 ## ---- eval=TRUE----------------------------------------------------------
 ## Load previous results:
