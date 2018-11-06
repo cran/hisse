@@ -54,7 +54,27 @@ cache <- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE
 gen <- hisse:::FindGenerations(phy)
 dat.tab <- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,1), hidden.states=TRUE)
 hisse.constrained <- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
-                                             root.type="madfitz", condition.on.survival=TRUE)
+                                             root.type="madfitz", condition.on.survival=TRUE,
+                                             root.p=NULL)
+comparison <- identical(round(hisse.constrained,4), round(diversitree.free,4))
+print(comparison)
+
+## ---- eval=TRUE----------------------------------------------------------
+pars.hisse <- rep(c(pars[1]+pars[5],pars[2]+pars[6],pars[3]+pars[7],pars[4]+pars[8], 
+                pars[5]/pars[1],pars[6]/pars[2],pars[7]/pars[3],pars[8]/pars[4], 
+                0.05,0.05,0, 0.05,0,0.05, 0.05,0,.05, 0,0.05,.05, 1,rep(0,6), 1,
+                rep(0,6), 1,rep(0,6), 1,rep(0,6)),2)
+model.vec = rep(0,384)
+model.vec[1:96] = pars.hisse
+phy$node.label = NULL
+cache <- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE, 
+                                         nb.tip=Ntip(phy), nb.node=Nnode(phy), 
+                                         bad.likelihood=exp(-500), ode.eps=0)
+gen <- hisse:::FindGenerations(phy)
+dat.tab <- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,1), hidden.states=TRUE)
+hisse.constrained <- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
+                                             root.type="madfitz", condition.on.survival=TRUE,
+                                             root.p=NULL)
 comparison <- identical(round(hisse.constrained,4), round(diversitree.free,4))
 print(comparison)
 
@@ -165,7 +185,8 @@ model.vec[1:12] = pars.hisse
 phy$node.label = NULL
 cache <- hisse:::ParametersToPassMuSSE(phy, states[,1], model.vec, f=c(1,1,1), hidden.states="TEST1")
 geosse.constrained <- hisse:::DownPassMusse(phy, cache, hidden.states=FALSE, 
-                                            root.type="madfitz", condition.on.survival=TRUE)
+                                            root.type="madfitz", condition.on.survival=TRUE,
+                                            root.p=NULL)
 comparison <- identical(round(geosse.constrained,4), round(diversitree.constrained,4))
 print(comparison)
 
@@ -197,7 +218,8 @@ cache <- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE
 gen <- hisse:::FindGenerations(phy)
 dat.tab <- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,0), hidden.states=TRUE)
 muhisse.constrained <- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
-                                             root.type="madfitz", condition.on.survival=TRUE)
+                                             root.type="madfitz", condition.on.survival=TRUE,
+                                            root.p=NULL)
 comparison <- identical(round(muhisse.constrained,4), round(diversitree.constrained,4))
 print(comparison)
 

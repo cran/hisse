@@ -206,7 +206,7 @@ hr {
 <body>
 <h2>Background</h2>
 
-<p>This tutorial gives some basic information on how to set up and execute parameter estimates when models using MuHiSSE (Nakov et al., 2018). </p>
+<p>This tutorial gives some basic information on how to set up and execute parameter estimates when using MuHiSSE (Nakov et al., 2018). </p>
 
 <p>In Nakov et al. (2018), we extended the HiSSE and CID model framework to handle a four-state case, representing correlated evolution between two binary characters. Note that a mulitstate version of HiSSE is available in RevBayes (based on its manual and conversations with Sebastian Höhna), in <code>SecSSE</code> (Herrera-Alsina et al., 2018), and as part of the model set described in Caetano et al. (2018). Our character state combinations were comprised of marine and planktonic (MP, or state combination \(00\)), marine and benthic (MB, or \(01\)), freshwater and planktonic (FP, or \(10\)), and freshwater and benthic (FB, or \(11\)). As with <code>hisse</code>, rather than optimizing \(\lambda_i\) and \(\mu_i\) separately, <code>MuHiSSE</code> optimizes transformations of these variables. Again, we let \(\tau_i = \lambda_i+\mu_i\) define &ldquo;net turnover&rdquo;, and we let \(\epsilon_i = \mu_i / \lambda_i\) define the &ldquo;extinction fraction&rdquo;. This reparameterization alleviates problems associated with over-fitting when \(\lambda_i\) and \(\mu_i\) are highly correlated, but both matter in explaining the diversity pattern (see discussion of this issue in Beaulieu and O&#39;Meara 2016). The number of free parameters in the model for both net turnover and extinction fraction are specified as index vectors provided to the function call. Each vector contains four entries that correspond to rates associated with the observed states (0 or 1) and the hidden states (A or B). They are always ordered as follows for a given hidden state, \(i\): \(00_i\), \(01_i\), \(10_i\), \(11_i\). </p>
 
@@ -280,7 +280,8 @@ cache &lt;- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=T
 gen &lt;- hisse:::FindGenerations(phy)
 dat.tab &lt;- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,1), hidden.states=TRUE)
 hisse.constrained &lt;- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
-                                             root.type=&quot;madfitz&quot;, condition.on.survival=TRUE)
+                                             root.type=&quot;madfitz&quot;, condition.on.survival=TRUE,
+                                             root.p=NULL)
 comparison &lt;- identical(round(hisse.constrained,4), round(diversitree.free,4))
 print(comparison)
 </code></pre>
@@ -288,7 +289,31 @@ print(comparison)
 <pre><code>## [1] TRUE
 </code></pre>
 
-<p>The implementation is correct.</p>
+<p>The implementation is correct. However, in the above case, we did not actually use any hidden states. We can also show that the likelihoods are identical to MuSSE so as long as the dynamics are the same among all included hidden states. Here we will just use hidden states A and B:</p>
+
+<pre><code class="r">pars.hisse &lt;- rep(c(pars[1]+pars[5],pars[2]+pars[6],pars[3]+pars[7],pars[4]+pars[8], 
+                pars[5]/pars[1],pars[6]/pars[2],pars[7]/pars[3],pars[8]/pars[4], 
+                0.05,0.05,0, 0.05,0,0.05, 0.05,0,.05, 0,0.05,.05, 1,rep(0,6), 1,
+                rep(0,6), 1,rep(0,6), 1,rep(0,6)),2)
+model.vec = rep(0,384)
+model.vec[1:96] = pars.hisse
+phy$node.label = NULL
+cache &lt;- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE, 
+                                         nb.tip=Ntip(phy), nb.node=Nnode(phy), 
+                                         bad.likelihood=exp(-500), ode.eps=0)
+gen &lt;- hisse:::FindGenerations(phy)
+dat.tab &lt;- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,1), hidden.states=TRUE)
+hisse.constrained &lt;- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
+                                             root.type=&quot;madfitz&quot;, condition.on.survival=TRUE,
+                                             root.p=NULL)
+comparison &lt;- identical(round(hisse.constrained,4), round(diversitree.free,4))
+print(comparison)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>Again, the likelihoods are identical and the implementation is correct. Note that the likelihood can also be calculated using the root likelihood summary procedure described by Herrera-Alsina et al. (2018). This is specified by doing <code>root.type=&quot;herr_als&quot;</code>. Note, however, that in our testing the likelihood differences are subtle, and in simulation the parameter estimates are nearly indistinguishable from the original root summary implementation of FitzJohn et al. (2009).</p>
 
 <h2>Setting up a MuSSE model using MuHiSSE</h2>
 
@@ -464,7 +489,8 @@ model.vec[1:12] = pars.hisse
 phy$node.label = NULL
 cache &lt;- hisse:::ParametersToPassMuSSE(phy, states[,1], model.vec, f=c(1,1,1), hidden.states=&quot;TEST1&quot;)
 geosse.constrained &lt;- hisse:::DownPassMusse(phy, cache, hidden.states=FALSE, 
-                                            root.type=&quot;madfitz&quot;, condition.on.survival=TRUE)
+                                            root.type=&quot;madfitz&quot;, condition.on.survival=TRUE,
+                                            root.p=NULL)
 comparison &lt;- identical(round(geosse.constrained,4), round(diversitree.constrained,4))
 print(comparison)
 </code></pre>
@@ -501,7 +527,8 @@ cache &lt;- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=T
 gen &lt;- hisse:::FindGenerations(phy)
 dat.tab &lt;- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,0), hidden.states=TRUE)
 muhisse.constrained &lt;- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
-                                             root.type=&quot;madfitz&quot;, condition.on.survival=TRUE)
+                                             root.type=&quot;madfitz&quot;, condition.on.survival=TRUE,
+                                            root.p=NULL)
 comparison &lt;- identical(round(muhisse.constrained,4), round(diversitree.constrained,4))
 print(comparison)
 </code></pre>
@@ -564,7 +591,7 @@ trans.rate.mod &lt;- ParDrop(trans.rate, c(4,6,7,8,12,14,15,16))
 
 <h2>Other considerations</h2>
 
-<p>Like with <code>hisse</code> and <code>GeoHiSSE</code>, there are functions available to obtain model averages (i.e., <code>GetModelAveRates()</code>), generate estimates of the uncertainty in the parameter estimates (i.e., <code>SupportRegionMuHiSSE()</code>), calculate the marginal probabilities for states at nodes (i.e., <code>MarginReconMuHiSSE()</code>), and plotting the rate variation on the tree (i.e., <code>plot.muhisse.states()</code>). Users are encouraged to read other vignettes and help pages provided for more information. For more conceptual discussions of these functions and ideas, readers are also encouraged to read Caetano et al. (2018). </p>
+<p>Like with <code>hisse</code> and <code>GeoHiSSE</code>, there are functions available to obtain model averages (i.e., <code>GetModelAveRates()</code>), generate estimates of the uncertainty in the parameter estimates (i.e., <code>SupportRegionMuHiSSE()</code>), calculate the marginal probabilities for states at nodes (i.e., <code>MarginReconMuHiSSE()</code>), plotting the rate variation on the tree (i.e., <code>plot.muhisse.states()</code>), and model-averaging the rates based on the equilibrium frequencies (i.e., <code>GetModelAveEqFreqs()</code>). Users are encouraged to read other vignettes and help pages provided for more information. For more conceptual discussions of these functions and ideas, readers are also encouraged to read Caetano et al. (2018). </p>
 
 <p>One additional item that is worth mentioning. I would recommend users try multiple random starting points when optimizing any given model with <code>MuHiSSE</code>. In Nakov et al. (2018), we found that the default starting values often did not return the highest log likelihood. To alleviate this issue, we performed \(\ge\) 50 maximum likelihood optimizations for each model, each initiated from a distinct starting point. All functions with <code>hisse</code> are provided with <code>starting.vals</code> option for these purposes. In the case of Nakov et al. (2018), we wrote our own custom function, which I have provided below using a MuCID3 model. Note that the following function was designed for multicore use:</p>
 
@@ -595,6 +622,8 @@ trans.rate.mod &lt;- ParDrop(trans.rate, c(4,6,7,8,12,14,15,16))
 <h2>References</h2>
 
 <p>Caetano, D.S., B.C. O&#39;Meara, and J.M. Beaulieu. 2018. Hidden state models improve state-dependent diversification approaches, including biogeographic models. Evolution, <a href="https://doi.org/10.1111/evo.13602">https://doi.org/10.1111/evo.13602</a></p>
+
+<p>FitzJohn R., W.P. Maddison, and S.P. Otto. 2009. Estimating trait-dependent speciation and extinction rates from incompletely resolved phylogenies, Systematic Biology, 58: 595-611.</p>
 
 <p>FitzJohn R.G. 2012. Diversitree: comparative phylogenetic analyses of diversification in R. Methods in Ecology and Evolution 3:1084-1092.</p>
 
