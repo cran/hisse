@@ -391,7 +391,7 @@ mod4 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 
 <pre><code>## 
 ## Fit 
-##             -lnL              AIC             AICc           n.taxa 
+##              lnL              AIC             AICc           n.taxa 
 ##         -803.026         1614.052         1614.257          200.000 
 ## n.hidden.classes 
 ##            1.000 
@@ -411,7 +411,7 @@ mod4 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 
 <pre><code>## 
 ## Fit 
-##             -lnL              AIC             AICc           n.taxa 
+##              lnL              AIC             AICc           n.taxa 
 ##        -802.1938        1618.3876        1618.9709         200.0000 
 ## n.hidden.classes 
 ##           1.0000 
@@ -431,7 +431,7 @@ mod4 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 
 <pre><code>## 
 ## Fit 
-##             -lnL              AIC             AICc           n.taxa 
+##              lnL              AIC             AICc           n.taxa 
 ##        -810.6062        1639.2124        1640.1597         200.0000 
 ## n.hidden.classes 
 ##           2.0000 
@@ -455,7 +455,7 @@ mod4 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 
 <pre><code>## 
 ## Fit 
-##             -lnL              AIC             AICc           n.taxa 
+##              lnL              AIC             AICc           n.taxa 
 ##        -798.7843        1627.5686        1630.1773         200.0000 
 ## n.hidden.classes 
 ##           2.0000 
@@ -651,7 +651,7 @@ model.ave.rates &lt;- GetModelAveRates(x = recon.models, type = &quot;tips&quot;
 
 <p>As of version 1.8.7, we now provide a new set of functions that execute more complex and potentially faster version of the GeoHiSSE model described by Caetano et al. (2018). One of the main differences here is that the model allows up to 10 hidden categories, and implements a more efficient means of carrying out branch calculations. Specifically, we break up the tree into sets of branches whose branch calculations are independent of one another. We then carry out all descendent branch calculations simultaneously, combine the probabilities based on their shared ancestry, then repeat for the next set of descendent branches. In testing, we&#39;ve found that as the number of taxa increases, the calculation becomes much more efficient. For instance, with 100,000 tips, a single tree traversal with the canonical GeoSSE model in the original code took 10 minutes, whereas in <code>fGeoHiSSE</code> the same traversal took about 30 seconds. In future versions, we will allow for multicore processing of these calculations to further improve speed. Also, note this function will eventually completely replace the version of <code>GeoHiSSE</code> that is currently available.</p>
 
-<p>There are a couple major differences with this version of <code>GeoHiSSE</code> that user should understand. First, while this version allows for cladogenetic events to be turned off (i.e., <code>assume.cladogenetic=FALSE</code>), it does not revert to a three-state MuSSE model as it does in <code>GeoHiSSE</code>. Instead, no lineage speciation and extinction are allowed in the widespread state, only transitions out of it. If a three-state MuSSE model is needed, we direct users to read the vignette on how to generate a three-state model in MuHiSSE. Second, <code>fGeoHiSSE</code> requires the use of <code>TransMatMakerfGeoSSE()</code> for generating the transition rates. </p>
+<p>There are a couple major differences with this version of <code>GeoHiSSE</code> that users should be aware. First, while this version allows for cladogenetic events to be turned off (i.e., <code>assume.cladogenetic=FALSE</code>), it does not revert to a three-state MuSSE model as it does in <code>GeoHiSSE</code>. Instead, no lineage speciation and extinction are allowed in the widespread state, only transitions out of it. If a three-state MuSSE model is needed, we direct users to read the vignette on how to generate a three-state model in MuHiSSE. Second, <code>fGeoHiSSE</code> requires the use of <code>TransMatMakerfGeoSSE()</code> for generating the transition rates. </p>
 
 <p>Finally, the other main difference is that, like <code>hisse</code>, we employ a modified optimization procedure. In other words, rather than optimizing birth and death separately, <code>fGeoHisse</code> optimizes orthogonal transformations of these variables: we let \(\tau\) define net turnover, and we let \(\epsilon\) define the extinction fraction. However, these transformations are slightly more complicated due to the dynamics associated with the widespread taxa. For a geographic-based model, we define turnover  as, </p>
 
@@ -679,7 +679,7 @@ model.ave.rates &lt;- GetModelAveRates(x = recon.models, type = &quot;tips&quot;
 
 <h2>References</h2>
 
-<p>Caetano, D.S., B.C. O&#39;Meara, and J.M. Beaulieu. 2018. Hidden state models improve state-dependent diversification approaches, including biogeographic models. Evolution, <a href="https://doi.org/10.1111/evo.13602">https://doi.org/10.1111/evo.13602</a></p>
+<p>Caetano, D.S., B.C. O&#39;Meara, and J.M. Beaulieu. 2018. Hidden state models improve state-dependent diversification approaches, including biogeographic models. Evolution, 72:2308-2324.</p>
 
 </body>
 
