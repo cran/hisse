@@ -213,7 +213,6 @@ hr {
 <p>Best place to install the package with the new functions provided here is from our github repository using the package <code>devtools</code>:</p>
 
 <pre><code class="r">library( devtools )
-## At the moment you need to point to the development branch on github.
 install_github(repo = &quot;thej022214/hisse&quot;, ref = &quot;master&quot;)
 </code></pre>
 
@@ -319,7 +318,7 @@ pars
 ## [1] &quot;list&quot;          &quot;GeoHiSSE_pars&quot;
 </code></pre>
 
-<p>Now we can use the parameters with the same function we applied before <code>SimulateGeoHiSSE</code> to generate both the data and the phylogeny. </p>
+<p>Now we can use the parameters with the same function we applied before <code>SimulateGeoHiSSE</code> to generate both the data and the phylogeny.</p>
 
 <p>Here we will set the seed for the simulation, so the outcome of the simulation is always the same. Note that you can change the seed or skip this lines to generate a different, random, dataset.</p>
 
@@ -347,7 +346,7 @@ mod1 &lt;- GeoHiSSE(phy = sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1)
                   speciation=speciation, extirpation=extirpation,
                   hidden.areas=FALSE, trans.rate=trans.rate)
 
-## Model 2. Canonical GeoSSE model, range effect on diversification 
+## Model 2. Canonical GeoSSE model, range effect on diversification
 speciation &lt;- c(1,2,3)
 extirpation &lt;- c(1,2)
 trans.rate &lt;- TransMatMakerGeoHiSSE(hidden.areas=0)
@@ -359,7 +358,7 @@ mod2 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 <p>Models 3 and 4 below have 2 hidden rates each. In this case the models will have twice the number of parameters: 6 speciation parameters and 4 extirpation parameters.</p>
 
 <pre><code class="r">## Model 3. GeoHiSSE model with 1 hidden area, no range-dependent diversification.
-## Note below how parameters vary among hidden classes but are the same within each 
+## Note below how parameters vary among hidden classes but are the same within each
 ##      hidden class.
 speciation &lt;- c(1,1,1,2,2,2)
 extirpation &lt;- c(1,1,2,2)
@@ -480,7 +479,7 @@ mod4 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 
 <p>To compute model weight we can use one of the functions of the package. This will work with both HiSSE and GeoHiSSE objects.</p>
 
-<pre><code class="r">GetModelWeight(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4)
+<pre><code class="r">GetAICWeights(list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4), criterion=&quot;AIC&quot;)
 </code></pre>
 
 <pre><code>##       model1       model2       model3       model4 
@@ -488,9 +487,9 @@ mod4 &lt;- GeoHiSSE(sim.geohisse$phy, data = sim.geohisse$data, f=c(1,1,1),
 </code></pre>
 
 <pre><code class="r">## As the number of models in the set grows, naming each model in the set can become hard.
-## So one can use a list (created by some automated code) as an imput also:
+## So one can use a list (created by some automated code) as an input also:
 list.geohisse &lt;- list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4)
-GetModelWeight(list.geohisse)
+GetAICWeights(list.geohisse, criterion=&quot;AIC&quot;)
 </code></pre>
 
 <pre><code>##       model1       model2       model3       model4 
@@ -622,7 +621,7 @@ model.ave.rates &lt;- GetModelAveRates(x = recon.models, type = &quot;tips&quot;
 
 <p>Finally, we can plot the use the resulting data matrix to make a plot of the results.</p>
 
-<pre><code class="r">plot.geohisse.states(x = recon.models, rate.param = &quot;net.div&quot;, type = &quot;fan&quot;, 
+<pre><code class="r">plot.geohisse.states(x = recon.models, rate.param = &quot;net.div&quot;, type = &quot;fan&quot;,
                      show.tip.label = FALSE, legend = FALSE)
 </code></pre>
 
@@ -651,9 +650,9 @@ model.ave.rates &lt;- GetModelAveRates(x = recon.models, type = &quot;tips&quot;
 
 <p>As of version 1.8.7, we now provide a new set of functions that execute more complex and potentially faster version of the GeoHiSSE model described by Caetano et al. (2018). One of the main differences here is that the model allows up to 10 hidden categories, and implements a more efficient means of carrying out branch calculations. Specifically, we break up the tree into sets of branches whose branch calculations are independent of one another. We then carry out all descendent branch calculations simultaneously, combine the probabilities based on their shared ancestry, then repeat for the next set of descendent branches. In testing, we&#39;ve found that as the number of taxa increases, the calculation becomes much more efficient. For instance, with 100,000 tips, a single tree traversal with the canonical GeoSSE model in the original code took 10 minutes, whereas in <code>fGeoHiSSE</code> the same traversal took about 30 seconds. In future versions, we will allow for multicore processing of these calculations to further improve speed. Also, note this function will eventually completely replace the version of <code>GeoHiSSE</code> that is currently available.</p>
 
-<p>There are a couple major differences with this version of <code>GeoHiSSE</code> that users should be aware. First, while this version allows for cladogenetic events to be turned off (i.e., <code>assume.cladogenetic=FALSE</code>), it does not revert to a three-state MuSSE model as it does in <code>GeoHiSSE</code>. Instead, no lineage speciation and extinction are allowed in the widespread state, only transitions out of it. If a three-state MuSSE model is needed, we direct users to read the vignette on how to generate a three-state model in MuHiSSE. Second, <code>fGeoHiSSE</code> requires the use of <code>TransMatMakerfGeoSSE()</code> for generating the transition rates. </p>
+<p>There are a couple major differences with this version of <code>GeoHiSSE</code> that users should be aware. First, while this version allows for cladogenetic events to be turned off (i.e., <code>assume.cladogenetic=FALSE</code>), it does not revert to a three-state MuSSE model as it does in <code>GeoHiSSE</code>. Instead, no lineage speciation and extinction are allowed in the widespread state, only transitions out of it. If a three-state MuSSE model is needed, we direct users to read the vignette on how to generate a three-state model in MuHiSSE. Second, <code>fGeoHiSSE</code> requires the use of <code>TransMatMakerfGeoSSE()</code> for generating the transition rates.</p>
 
-<p>Finally, the other main difference is that, like <code>hisse</code>, we employ a modified optimization procedure. In other words, rather than optimizing birth and death separately, <code>fGeoHisse</code> optimizes orthogonal transformations of these variables: we let \(\tau\) define net turnover, and we let \(\epsilon\) define the extinction fraction. However, these transformations are slightly more complicated due to the dynamics associated with the widespread taxa. For a geographic-based model, we define turnover  as, </p>
+<p>Finally, the other main difference is that, like <code>hisse</code>, we employ a modified optimization procedure. In other words, rather than optimizing birth and death separately, <code>fGeoHisse</code> optimizes orthogonal transformations of these variables: we let \(\tau\) define net turnover, and we let \(\epsilon\) define the extinction fraction. However, these transformations are slightly more complicated due to the dynamics associated with the widespread taxa. For a geographic-based model, we define turnover  as,</p>
 
 <p>\[\tau_{00i} = s_{00i} + x_{00i}\]
 \[\tau_{11i} = s_{11i} + s_{11i}\]
@@ -675,7 +674,7 @@ model.ave.rates &lt;- GetModelAveRates(x = recon.models, type = &quot;tips&quot;
 <p>\[x_{00i} = (\tau_{00i}*\epsilon_{00i}) / (1 + \epsilon_{00i})\]
 \[x_{11i} = (\tau_{11i}*\epsilon_{11i}) / (1 + \epsilon_{11i})\]</p>
 
-<p>Also, note that the output from <code>fGeoHiSSE</code> can be used and processed using available functions. For example, the output can automatically be used to obtain model averages (i.e., <code>GetModelAveRates()</code>), generate estimates of the uncertainty in the parameter estimates (i.e., <code>SupportRegionGeoSSE()</code>), calculate the marginal probabilities for states at nodes (i.e., <code>MarginReconfGeoSSE()</code>), and plotting the rate variation on the tree (i.e., <code>plot.geohisse.states()</code>). Users are encouraged to read other vignettes and help pages provided for more information. For more conceptual discussions of these functions and ideas, readers are also encouraged to read Caetano et al. (2018). </p>
+<p>Also, note that the output from <code>fGeoHiSSE</code> can be used and processed using available functions. For example, the output can automatically be used to obtain model averages (i.e., <code>GetModelAveRates()</code>), generate estimates of the uncertainty in the parameter estimates (i.e., <code>SupportRegionGeoSSE()</code>), calculate the marginal probabilities for states at nodes (i.e., <code>MarginReconfGeoSSE()</code>), and plotting the rate variation on the tree (i.e., <code>plot.geohisse.states()</code>). Users are encouraged to read other vignettes and help pages provided for more information. For more conceptual discussions of these functions and ideas, readers are also encouraged to read Caetano et al. (2018).</p>
 
 <h2>References</h2>
 

@@ -88,6 +88,7 @@ trans.rate <- TransMatMakerMuHiSSE(hidden.traits=0)
 print(trans.rate)
 
 ## ---- eval=FALSE---------------------------------------------------------
+#  states.trans <- cbind(phy$tip.label, states.trans)
 #  dull.null <- MuHiSSE(phy=phy, data=states.trans, f=f, turnover=turnover,
 #                       eps=extinction.fraction, hidden.states=FALSE,
 #                       trans.rate=trans.rate)

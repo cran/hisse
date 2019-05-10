@@ -1,6 +1,5 @@
 ## ---- eval=FALSE---------------------------------------------------------
 #  library( devtools )
-#  ## At the moment you need to point to the development branch on github.
 #  install_github(repo = "thej022214/hisse", ref = "master")
 
 ## ---- eval=TRUE----------------------------------------------------------
@@ -76,11 +75,11 @@ mod3
 mod4
 
 ## ---- eval=TRUE----------------------------------------------------------
-GetModelWeight(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4)
+GetAICWeights(list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4), criterion="AIC")
 ## As the number of models in the set grows, naming each model in the set can become hard.
-## So one can use a list (created by some automated code) as an imput also:
+## So one can use a list (created by some automated code) as an input also:
 list.geohisse <- list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4)
-GetModelWeight(list.geohisse)
+GetAICWeights(list.geohisse, criterion="AIC")
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  recon.mod1 <- MarginReconGeoSSE(phy = mod1$phy, data = mod1$data, f = mod1$f,
@@ -118,6 +117,6 @@ model.ave.rates <- GetModelAveRates(x = recon.models, type = "tips")
 head( model.ave.rates )
 
 ## ----fig1, fig.height = 15, fig.width = 5--------------------------------
-plot.geohisse.states(x = recon.models, rate.param = "net.div", type = "fan", 
+plot.geohisse.states(x = recon.models, rate.param = "net.div", type = "fan",
                      show.tip.label = FALSE, legend = FALSE)
 

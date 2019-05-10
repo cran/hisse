@@ -339,7 +339,8 @@ print(trans.rate)
 
 <p>Now, we can call MuHiSSE and estimate the parameters under this model using the default settings:</p>
 
-<pre><code class="r">dull.null &lt;- MuHiSSE(phy=phy, data=states.trans, f=f, turnover=turnover, 
+<pre><code class="r">states.trans &lt;- cbind(phy$tip.label, states.trans)
+dull.null &lt;- MuHiSSE(phy=phy, data=states.trans, f=f, turnover=turnover, 
                      eps=extinction.fraction, hidden.states=FALSE, 
                      trans.rate=trans.rate)
 </code></pre>
