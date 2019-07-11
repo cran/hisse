@@ -12,13 +12,24 @@ MuHiSSE <- function(phy, data, f=c(1,1,1,1), turnover=c(1,2,3,4), eps=c(1,2,3,4)
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
     if(!is.null(root.p)) {
-        root.p <- root.p / sum(root.p)
-        if(hidden.states ==TRUE & length(root.p)==4){
-            root.p <- rep(root.p, 4)
+        if(hidden.states ==TRUE){
+            if( length( root.p ) == 4 ){
+                root.p <- rep(root.p, 4)
+                root.p <- root.p / sum(root.p)
+                warning("For hidden states, you need to specify the root.p for all hidden states. We have adjusted it so that there's equal chance for among all hidden states.")
+            } else{
+                root.p.new <- numeric(32)
+                root.p.new[1:length(root.p)] <- root.p
+                root.p <- root.p.new
+                root.p <- root.p / sum(root.p)
+            }
+        }else{
+            ## All good:
             root.p <- root.p / sum(root.p)
-            warning("For hidden states, you need to specify the root.p for all four hidden states. We have adjusted it so that there's equal chance for 0A as 0B, and for 1A as 1B")
+            
         }
     }
+    
     
     if(any(f == 0)){
         f[which(f==0)] <- 1
@@ -588,8 +599,14 @@ FocalNodeProb <- function(cache, dat.tab, generations){
         if(!is.null(cache$node)){
             if(any(cache$node %in% generations)){
                 for(fix.index in 1:length(cache$node)){
-                    fixer = numeric(32)
-                    fixer[cache$state[fix.index]] = 1
+                    if(is.na(cache$fix.type[fix.index])){
+                        fixer.tmp = numeric(4)
+                        fixer.tmp[cache$state[fix.index]] = 1
+                        fixer = rep(fixer.tmp, 8)
+                    }else{
+                        fixer = numeric(32)
+                        fixer[cache$state[fix.index]] = 1
+                    }
                     v.mat[which(generations == cache$node[fix.index]),] <- v.mat[which(generations == cache$node[fix.index]),] * fixer
                 }
             }
@@ -636,8 +653,14 @@ GetRootProb <- function(cache, dat.tab, generations){
         if(!is.null(cache$node)){
             if(any(cache$node %in% generations)){
                 for(fix.index in 1:length(cache$node)){
-                    fixer = numeric(32)
-                    fixer[cache$state[fix.index]] = 1
+                    if(is.na(cache$fix.type[fix.index])){
+                        fixer.tmp = numeric(4)
+                        fixer.tmp[cache$state[fix.index]] = 1
+                        fixer = rep(fixer.tmp, 8)
+                    }else{
+                        fixer = numeric(32)
+                        fixer[cache$state[fix.index]] = 1
+                    }
                     v.mat[which(generations == cache$node[fix.index]),] <- v.mat[which(generations == cache$node[fix.index]),] * fixer
                 }
             }
@@ -672,7 +695,7 @@ GetRootProb <- function(cache, dat.tab, generations){
 ######################################################################################################################################
 ######################################################################################################################################
 
-DownPassMuHisse <- function(dat.tab, gen, cache, condition.on.survival, root.type, root.p, get.phi=FALSE, node=NULL, state=NULL) {
+DownPassMuHisse <- function(dat.tab, gen, cache, condition.on.survival, root.type, root.p, get.phi=FALSE, node=NULL, state=NULL, fix.type=NULL) {
     
     ### Ughy McUgherson. This is a must in order to pass CRAN checks: http://stackoverflow.com/questions/9439256/how-can-i-handle-r-cmd-check-no-visible-binding-for-global-variable-notes-when
     DesNode = NULL
@@ -687,9 +710,11 @@ DownPassMuHisse <- function(dat.tab, gen, cache, condition.on.survival, root.typ
                 if(any(node %in% gen[[i]])){
                     cache$node <- node
                     cache$state <- state
+                    cache$fix.type <- fix.type
                     res.tmp <- GetRootProb(cache=cache, dat.tab=dat.tab, generations=gen[[i]])
                     cache$node <- NULL
                     cache$state <- NULL
+                    cache$fix.type <- NULL
                 }else{
                     res.tmp <- GetRootProb(cache=cache, dat.tab=dat.tab, generations=gen[[i]])
                 }
@@ -711,9 +736,11 @@ DownPassMuHisse <- function(dat.tab, gen, cache, condition.on.survival, root.typ
                 if(any(node %in% gen[[i]])){
                     cache$node <- node
                     cache$state <- state
+                    cache$fix.type <- fix.type
                     dat.tab <- FocalNodeProb(cache, dat.tab, gen[[i]])
                     cache$node <- NULL
                     cache$state <- NULL
+                    cache$fix.type <- NULL
                 }else{
                     dat.tab <- FocalNodeProb(cache, dat.tab, gen[[i]])
                 }

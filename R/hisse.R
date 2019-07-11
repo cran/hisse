@@ -6,32 +6,42 @@
 ######################################################################################################################################
 
 hisse <- function(phy, data, f=c(1,1), hidden.states=TRUE, turnover.anc=c(1,1,0,0), eps.anc=c(1,1,0,0), trans.rate=NULL, turnover.beta=c(0,0,0,0), eps.beta=c(0,0,0,0), timeslice=NULL, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, output.type="turnover", sann=FALSE, sann.its=10000, bounded.search=TRUE, max.tol=.Machine$double.eps^.25, starting.vals=NULL, turnover.upper=10000, eps.upper=3, trans.upper=100, ode.eps=0){
-
+    
     if(!is.null(root.p)) {
-		root.p <- root.p / sum(root.p)
-		if(hidden.states ==TRUE & length(root.p)==2){
-			root.p <- rep(root.p, 2)
-			root.p <- root.p / sum(root.p)
-			warning("For hidden states, you need to specify the root.p for all four hidden states. We have adjusted it so that there's equal chance for 0A as 0B, and for 1A as 1B")
-		}
-	}
-
+        if(hidden.states ==TRUE){
+            if( length( root.p ) == 2 ){
+                root.p <- rep(root.p, 2)
+                root.p <- root.p / sum(root.p)
+                warning("For hidden states, you need to specify the root.p for all hidden states. We have adjusted it so that there's equal chance for among all hidden states.")
+            } else{
+                root.p.new <- numeric(4)
+                root.p.new[1:length(root.p)] <- root.p
+                root.p <- root.p.new
+                root.p <- root.p / sum(root.p)
+            }
+        }else{
+            ## All good:
+            root.p <- root.p / sum(root.p)
+        }
+        
+    }
+    
     if(!root.type == "madfitz" & !root.type == "herr_als"){
         stop("Check that you specified a proper root.type option. Options are 'madfitz' or 'herr_als'. See help for more details.", call.=FALSE)
     }
-
-	if(is.null(trans.rate)){
-		stop("Rate matrix needed. See TransMatMaker() to create one.")
-	}
-
-	if(hidden.states == TRUE & dim(trans.rate)[1]<4){
-		stop("You chose a hidden state but this is not reflected in the transition matrix")
-	}
-
-	if(sum(turnover.beta) > 0 | sum(eps.beta) > 0){
-		warning("You chose a time dependent model. This is currently untested -- Good luck.")
-	}
-
+    
+    if(is.null(trans.rate)){
+        stop("Rate matrix needed. See TransMatMaker() to create one.")
+    }
+    
+    if(hidden.states == TRUE & dim(trans.rate)[1]<4){
+        stop("You chose a hidden state but this is not reflected in the transition matrix")
+    }
+    
+    if(sum(turnover.beta) > 0 | sum(eps.beta) > 0){
+        warning("You chose a time dependent model. This is currently untested -- Good luck.")
+    }
+    
 	if(!is.null(timeslice)){
 		stop("You chose a time slice model. This is currently unavailable.")
 	}
@@ -198,7 +208,7 @@ hisse <- function(phy, data, f=c(1,1), hidden.states=TRUE, turnover.anc=c(1,1,0,
 	solution.tmp = solution[21:56]
 	solution.tmp[solution.tmp==0] = 1
 	solution[21:56] = solution.tmp
-    names(solution) = c("turn.0A", "turn.1A", "turn.0B", "turn.1B", "eps.0A", "eps.1A", "eps.0B", "eps.1B","q1A0A","q0B0A","q1B0A","q0A1A","q0B1A","q1B1A","q0A0B","q1A0B","q1B0B","q0A1B","q1A1B","q0A1B","turn.alpha.0A","turn.alpha.1A", "turn.alpha.0B", "turn.alpha.1B", "turn.beta.0A","turn.beta.1A", "turn.beta.0B", "turn.beta.1B", "eps.alpha.0A","eps.alpha.1A", "eps.alpha.0B", "eps.alpha.1B", "eps.beta.0A","eps.beta.1A", "eps.beta.0B", "eps.beta.1B", "turn.slice.0A","turn.slice.1A", "turn.slice.0B", "turn.slice.1B", "eps.slice.0A","eps.slice.1A", "eps.slice.0B", "eps.slice.1B", "q0A1A.slice","q1A0A.slice","q0A0B.slice","q0B0A.slice","q1A1B.slice","q1B1A.slice","q0A1B.slice","q1B0A.slice","q1A0B.slice","q0B1A.slice","q1B0B.slice","q0B1B.slice")
+    names(solution) = c("turn.0A", "turn.1A", "turn.0B", "turn.1B", "eps.0A", "eps.1A", "eps.0B", "eps.1B","q1A0A","q0B0A","q1B0A","q0A1A","q0B1A","q1B1A","q0A0B","q1A0B","q1B0B","q0A1B","q1A1B","q0B1B","turn.alpha.0A","turn.alpha.1A", "turn.alpha.0B", "turn.alpha.1B", "turn.beta.0A","turn.beta.1A", "turn.beta.0B", "turn.beta.1B", "eps.alpha.0A","eps.alpha.1A", "eps.alpha.0B", "eps.alpha.1B", "eps.beta.0A","eps.beta.1A", "eps.beta.0B", "eps.beta.1B", "turn.slice.0A","turn.slice.1A", "turn.slice.0B", "turn.slice.1B", "eps.slice.0A","eps.slice.1A", "eps.slice.0B", "eps.slice.1B", "q0A1A.slice","q1A0A.slice","q0A0B.slice","q0B0A.slice","q1A1B.slice","q1B1A.slice","q0A1B.slice","q1B0A.slice","q1A0B.slice","q0B1A.slice","q1B0B.slice","q0B1B.slice")
 
  	obj = list(loglik = loglik, AIC = -2*loglik+2*np, AICc = -2*loglik+(2*np*(Ntip(phy)/(Ntip(phy)-np-1))), solution=solution, index.par=pars, f=f, hidden.states=hidden.states, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, timeslice=timeslice, phy=phy, data=data, trans.matrix=trans.rate, output.type=output.type, max.tol=max.tol, starting.vals=ip, upper.bounds=upper, lower.bounds=lower, ode.eps=ode.eps)
 	class(obj) = "hisse.fit"
