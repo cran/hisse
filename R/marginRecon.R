@@ -308,13 +308,146 @@ MarginReconGeoSSE <- function(phy, data, f, pars, hidden.areas=TRUE, assume.clad
 }
 
 
+
+######################################################################################################################################
+######################################################################################################################################
+### ANCESTRAL STATE RECONSTRUCTION for newer, faster HiSSE -- calculates marginal probabilities for our set of HiSSE models
+######################################################################################################################################
+######################################################################################################################################
+
+MarginReconfHiSSE <- function(phy, data, f, pars, hidden.states=1, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL, dt.threads=1){
+    
+    if( !is.null(phy$node.label) ) phy$node.label <- NULL
+    
+    if(!is.null(root.p)) {
+        root.type="user"
+        root.p <- root.p / sum(root.p)
+        if(hidden.states > 1 & length(root.p)==2){
+            root.p <- rep(root.p, hidden.states)
+            root.p <- root.p / sum(root.p)
+            warning("For hidden states, you need to specify the root.p for all possible hidden states. We have adjusted it so that there's equal chance for each of the specified hidden states")
+        }
+    }
+    
+    setDTthreads(threads=dt.threads)
+    
+    model.vec = pars
+    
+    # Some new prerequisites #
+    data.new <- data.frame(data[,2], data[,2], row.names=data[,1])
+    data.new <- data.new[phy$tip.label,]
+    gen <- FindGenerations(phy)
+    dat.tab <- OrganizeDataHiSSE(data=data.new, phy=phy, f=f, hidden.states=TRUE)
+    nb.tip <- Ntip(phy)
+    nb.node <- phy$Nnode
+    ##########################
+    
+    ### Ughy McUgherson. This is a must in order to pass CRAN checks: http://stackoverflow.com/questions/9439256/how-can-i-handle-r-cmd-check-no-visible-binding-for-global-variable-notes-when
+    DesNode = NULL
+    ##########################
+    
+    cache <- ParametersToPassfHiSSE(model.vec=model.vec, hidden.states=TRUE, nb.tip=nb.tip, nb.node=nb.node, bad.likelihood=exp(-500), ode.eps=0)
+    
+    nstates <- 8
+    nstates.to.eval <- 2 * hidden.states
+    nstates.not.eval <- 8 - nstates.to.eval
+    nodes <- unique(phy$edge[,1])
+    
+    if(is.null(n.cores)){
+        n.cores=1
+    }
+    
+    NodeEval <- function(node){
+        focal <- node
+        marginal.probs.tmp <- c()
+        for (j in 1:nstates.to.eval){
+            marginal.probs.tmp <- c(marginal.probs.tmp, DownPassHiSSE(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=focal, state=j, fix.type="fix"))
+        }
+        marginal.probs.tmp <- c(marginal.probs.tmp, rep(log(cache$bad.likelihood)^13, nstates.not.eval))
+        best.probs <- max(marginal.probs.tmp)
+        marginal.probs.rescaled <- marginal.probs.tmp - best.probs
+        marginal.probs <- exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
+        return(c(node, marginal.probs))
+    }
+    
+    if(get.tips.only == FALSE){
+        cat(paste("Calculating marginal probabilities for ", length(nodes), " internal nodes...", sep=""), "\n")
+        obj <- NULL
+        node.marginals <- mclapply((nb.tip+1):(nb.tip+nb.node), NodeEval, mc.cores=n.cores)
+        obj$node.mat <- matrix(unlist(node.marginals), ncol = 8+1, byrow = TRUE)
+        colnames(obj$node.mat) <- c("id", "(0A)", "(1A)", "(0B)", "(1B)", "(0C)", "(1C)", "(0D)", "(1D)")
+        phy$node.label <- apply(obj$node.mat[,2:dim(obj$node.mat)[2]], 1, which.max)
+    }else{
+        cat("Calculating marginal probabilities for internal nodes is turned off...", "\n")
+        obj <- NULL
+    }
+    
+    dat.tab <- OrganizeDataHiSSE(data=data.new, phy=phy, f=f, hidden.states=TRUE)
+    TipEval <- function(tip){
+        setkey(dat.tab, DesNode)
+        marginal.probs.tmp <- numeric(8)
+        nstates = which(!dat.tab[tip,7:14] == 0)
+        cache$states.keep <- as.data.frame(dat.tab[tip,7:14])
+        for (j in nstates[1:hidden.states]){
+            cache$to.change <- cache$states.keep
+            tmp.state <- 1 * c(cache$to.change[1,j])
+            cache$to.change[1,] <- 0
+            cache$to.change[1,j] <- tmp.state
+            for (k in 1:dim(cache$to.change)[2]){
+                dat.tab[tip, paste("compD", k, sep="_") := cache$to.change[,k]]
+            }
+            marginal.probs.tmp[j] <- DownPassHiSSE(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=NULL, state=j)
+        }
+        for (k in 1:dim(cache$to.change)[2]){
+            dat.tab[tip, paste("compD", k, sep="_") := cache$states.keep[,k]]
+        }
+        best.probs <- max(marginal.probs.tmp[nstates[1:hidden.states]])
+        marginal.probs.rescaled <- marginal.probs.tmp[nstates[1:hidden.states]] - best.probs
+        marginal.probs <- numeric(8)
+        marginal.probs[nstates[1:hidden.states]] <- exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
+        return(c(tip, marginal.probs))
+    }
+    
+    if(hidden.states>1){
+        cat(paste("Finished. Calculating marginal probabilities for ", nb.tip, " tips...", sep=""), "\n")
+        tip.marginals <- mclapply(1:nb.tip, TipEval, mc.cores=n.cores)
+        obj$tip.mat <- matrix(unlist(tip.marginals), ncol = 8+1, byrow = TRUE)
+    }else{
+        obj$tip.mat <- matrix(0, ncol = 8+1, nrow = nb.tip)
+        obj$tip.mat[,1] <- 1:nb.tip
+        setkey(dat.tab, DesNode)
+        obj$tip.mat[,2:3] <- matrix(unlist(dat.tab[1:nb.tip,7:8]), ncol = 2, byrow = FALSE)
+    }
+    
+    cat("Done.","\n")
+    
+    colnames(obj$tip.mat)  <- c("id", "(0A)", "(1A)", "(0B)", "(1B)", "(0C)", "(1C)", "(0D)", "(1D)")
+    rates.mat <- matrix(0, 2, 8)
+    rates.mat[1,] <- model.vec[c(1:2, 13:14, 25:26, 37:38)]
+    rates.mat[2,] <- model.vec[c(3:4, 15:16, 27:28, 39:40)]
+    rownames(rates.mat) <- c("turnover", "extinction.fraction")
+    colnames(rates.mat) <- c("(0A)", "(1A)", "(0B)", "(1B)", "(0C)", "(1C)", "(0D)", "(1D)")
+    rates.mat <- ParameterTransformfHiSSE(rates.mat)
+    obj$rates.mat = rates.mat
+    obj$phy = phy
+    
+    if(!is.null(aic)){
+        obj$aic = aic
+    }
+    
+    class(obj) = "hisse.states"
+    return(obj)
+}
+
+
+
 ######################################################################################################################################
 ######################################################################################################################################
 ### ANCESTRAL STATE RECONSTRUCTION for MuHiSSE -- calculates marginal probabilities for our set of MuHiSSE models
 ######################################################################################################################################
 ######################################################################################################################################
 
-MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL){
+MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL, dt.threads=1){
     
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
@@ -328,6 +461,8 @@ MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on
         }
     }
     
+    setDTthreads(threads=dt.threads)
+
     model.vec = pars
     
     # Some new prerequisites #
@@ -368,22 +503,24 @@ MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on
     }
     
     if(get.tips.only == FALSE){
+        cat(paste("Calculating marginal probabilities for ", length(nodes), " internal nodes...", sep=""), "\n")
         obj <- NULL
         node.marginals <- mclapply((nb.tip+1):(nb.tip+nb.node), NodeEval, mc.cores=n.cores)
         obj$node.mat <- matrix(unlist(node.marginals), ncol = 32+1, byrow = TRUE)
         colnames(obj$node.mat) <- c("id", "(00A)","(01A)","(10A)","(11A)", "(00B)","(01B)","(10B)","(11B)", "(00C)","(01C)","(10C)","(11C)", "(00D)","(01D)","(10D)","(11D)", "(00E)","(01E)","(10E)","(11E)", "(00F)","(01F)","(10F)","(11F)", "(00G)","(01G)","(10G)","(11G)", "(00H)","(01H)","(10H)","(11H)")
         phy$node.label <- apply(obj$node.mat[,2:dim(obj$node.mat)[2]], 1, which.max)
     }else{
+        cat("Calculating marginal probabilities for internal nodes is turned off...", "\n")
         obj <- NULL
     }
     
     dat.tab <- OrganizeData(data=data.new, phy=phy, f=f, hidden.states=TRUE)
     TipEval <- function(tip){
         setkey(dat.tab, DesNode)
-        marginal.probs.tmp <- numeric(4)
+        marginal.probs.tmp <- numeric(32)
         nstates = which(!dat.tab[tip,7:38] == 0)
         cache$states.keep <- as.data.frame(dat.tab[tip,7:38])
-        for (j in nstates[1:nstates.to.eval]){
+        for (j in nstates[1:hidden.states]){
             cache$to.change <- cache$states.keep
             tmp.state <- 1 * c(cache$to.change[1,j])
             cache$to.change[1,] <- 0
@@ -396,14 +533,15 @@ MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on
         for (k in 1:dim(cache$to.change)[2]){
             dat.tab[tip, paste("compD", k, sep="_") := cache$states.keep[,k]]
         }
-        best.probs <- max(marginal.probs.tmp[nstates])
-        marginal.probs.rescaled <- marginal.probs.tmp[nstates] - best.probs
+        best.probs <- max(marginal.probs.tmp[nstates[1:hidden.states]])
+        marginal.probs.rescaled <- marginal.probs.tmp[nstates[1:hidden.states]] - best.probs
         marginal.probs <- numeric(32)
-        marginal.probs[nstates] <- exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
+        marginal.probs[nstates[1:hidden.states]] <- exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
         return(c(tip, marginal.probs))
     }
     
     if(hidden.states>1){
+        cat(paste("Finished. Calculating marginal probabilities for ", nb.tip, " tips...", sep=""), "\n")
         tip.marginals <- mclapply(1:nb.tip, TipEval, mc.cores=n.cores)
         obj$tip.mat <- matrix(unlist(tip.marginals), ncol = 32+1, byrow = TRUE)
     }else{
@@ -412,8 +550,10 @@ MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on
         setkey(dat.tab, DesNode)
         obj$tip.mat[,2:5] <- matrix(unlist(dat.tab[1:nb.tip,7:10]), ncol = 4, byrow = FALSE)
     }
-    colnames(obj$tip.mat)  <- c("id", "(00A)","(01A)","(10A)","(11A)", "(00B)","(01B)","(10B)","(11B)", "(00C)","(01C)","(10C)","(11C)", "(00D)","(01D)","(10D)","(11D)", "(00E)","(01E)","(10E)","(11E)", "(00F)","(01F)","(10F)","(11F)", "(00G)","(01G)","(10G)","(11G)", "(00H)","(01H)","(10H)","(11H)")
     
+    cat("Done.","\n")
+    
+    colnames(obj$tip.mat)  <- c("id", "(00A)","(01A)","(10A)","(11A)", "(00B)","(01B)","(10B)","(11B)", "(00C)","(01C)","(10C)","(11C)", "(00D)","(01D)","(10D)","(11D)", "(00E)","(01E)","(10E)","(11E)", "(00F)","(01F)","(10F)","(11F)", "(00G)","(01G)","(10G)","(11G)", "(00H)","(01H)","(10H)","(11H)")
     rates.mat <- matrix(0, 2, 32)
     rates.mat[1,] <- model.vec[c(1:4, 49:52, 97:100, 145:148, 193:196, 241:244, 289:292, 337:340)]
     rates.mat[2,] <- model.vec[c(5:8, 53:56, 101:104, 149:152, 197:200, 245:248, 293:296, 341:344)]
@@ -439,7 +579,7 @@ MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=2, condition.on
 ######################################################################################################################################
 ######################################################################################################################################
 
-MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladogenetic=TRUE, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL){
+MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladogenetic=TRUE, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL, dt.threads=1){
     
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
@@ -453,6 +593,8 @@ MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladog
         }
     }
     
+    setDTthreads(threads=dt.threads)
+
     model.vec = pars
     
     # Some new prerequisites #
@@ -492,22 +634,24 @@ MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladog
     }
     
     if(get.tips.only == FALSE){
+        cat(paste("Calculating marginal probabilities for ", length(nodes), " internal nodes...", sep=""), "\n")
         obj <- NULL
         node.marginals <- mclapply((nb.tip+1):(nb.tip+nb.node), NodeEval, mc.cores=n.cores)
         obj$node.mat <- matrix(unlist(node.marginals), ncol = 30+1, byrow = TRUE)
         colnames(obj$node.mat) <- c("id", "(00A)", "(11A)", "(01A)", "(00B)", "(11B)", "(01B)", "(00C)", "(11C)", "(01C)", "(00D)", "(11D)", "(01D)", "(00E)", "(11E)", "(01E)", "(00F)", "(11F)", "(01F)", "(00G)", "(11G)", "(01G)", "(00H)", "(11H)", "(01H)", "(00I)", "(11I)", "(01I)", "(00J)", "(11J)", "(01J)")
         phy$node.label <- apply(obj$node.mat[,2:dim(obj$node.mat)[2]], 1, which.max)
     }else{
+        cat("Calculating marginal probabilities for internal nodes is turned off...", "\n")
         obj <- NULL
     }
     
     dat.tab <- OrganizeDataGeo(data=data.new[,1], phy=phy, f=f, hidden.states=TRUE)
     TipEval <- function(tip){
         setkey(dat.tab, DesNode)
-        marginal.probs.tmp <- numeric(4)
+        marginal.probs.tmp <- numeric(30)
         nstates = which(!dat.tab[tip,7:36] == 0)
         cache$states.keep <- as.data.frame(dat.tab[tip,7:36])
-        for (j in nstates[1:nstates.to.eval]){
+        for (j in nstates[1:hidden.areas]){
             cache$to.change <- cache$states.keep
             tmp.state <- 1 * c(cache$to.change[1,j])
             cache$to.change[1,] <- 0
@@ -521,14 +665,15 @@ MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladog
         for (k in 1:dim(cache$to.change)[2]){
             dat.tab[tip, paste("compD", k, sep="_") := cache$states.keep[,k]]
         }
-        best.probs = max(marginal.probs.tmp[nstates])
-        marginal.probs.rescaled = marginal.probs.tmp[nstates] - best.probs
+        best.probs = max(marginal.probs.tmp[nstates[1:hidden.areas]])
+        marginal.probs.rescaled = marginal.probs.tmp[nstates[1:hidden.areas]] - best.probs
         marginal.probs <- numeric(30)
-        marginal.probs[nstates] = exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
+        marginal.probs[nstates[1:hidden.areas]] = exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
         return(c(tip, marginal.probs))
     }
     
     if(hidden.areas>1){
+        cat(paste("Finished. Calculating marginal probabilities for ", nb.tip, " tips...", sep=""), "\n")
         tip.marginals <- mclapply(1:nb.tip, TipEval, mc.cores=n.cores)
         obj$tip.mat = matrix(unlist(tip.marginals), ncol = 30+1, byrow = TRUE)
     }else{
@@ -538,6 +683,7 @@ MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladog
         obj$tip.mat[,2:4] <- matrix(unlist(dat.tab[1:nb.tip,7:9]), ncol = 3, byrow = FALSE)
     }
 
+    cat("Done.","\n")
     rates.mat <- matrix(0, 2, 30)
     rates.mat[1,] <- model.vec[c(1:3, 39:41, 77:79, 115:117, 153:155, 191:193, 229:231, 267:269, 305:307, 343:345)]
     rates.mat[2,] <- c(model.vec[c(4:5)],0, model.vec[c(42:43)],0,  model.vec[c(80:81)],0, model.vec[c(118:119)],0, model.vec[c(156:157)],0, model.vec[c(194:195)],0, model.vec[c(232:233)],0, model.vec[c(270:271)],0, model.vec[c(308:309)],0, model.vec[c(346:347)],0)
@@ -568,7 +714,7 @@ MarginReconfGeoSSE <- function(phy, data, f, pars, hidden.areas=2, assume.cladog
 ######################################################################################################################################
 
 
-MarginReconMiSSE <- function(phy, f, pars, hidden.states=2, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL){
+MarginReconMiSSE <- function(phy, f, pars, hidden.states=2, condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, aic=NULL, get.tips.only=FALSE, verbose=TRUE, n.cores=NULL, dt.threads=1){
     
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
@@ -582,6 +728,8 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=2, condition.on.surviva
         }
     }
     
+    setDTthreads(threads=dt.threads)
+
     model.vec = pars
     
     # Some new prerequisites #
@@ -618,12 +766,14 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=2, condition.on.surviva
     }
     
     if(get.tips.only == FALSE){
+        cat(paste("Calculating marginal probabilities for ", length(nodes), " internal nodes...", sep=""), "\n")
         obj <- NULL
         node.marginals <- mclapply((nb.tip+1):(nb.tip+nb.node), NodeEval, mc.cores=n.cores)
         obj$node.mat <- matrix(unlist(node.marginals), ncol = 26+1, byrow = TRUE)
         colnames(obj$node.mat) <- c("id", "(0A)", "(0B)", "(0C)", "(0D)", "(0E)", "(0F)", "(0G)", "(0H)", "(0I)", "(0J)", "(0K)", "(0L)", "(0M)", "(0N)", "(0O)", "(0P)", "(0Q)", "(0R)", "(0S)", "(0T)", "(0U)", "(0V)", "(0W)", "(0X)", "(0Y)", "(0Z)")
         phy$node.label = apply(obj$node.mat[,2:dim(obj$node.mat)[2]], 1, which.max)
     }else{
+        cat("Calculating marginal probabilities for internal nodes is turned off...", "\n")
         obj <- NULL
     }
     
@@ -652,10 +802,12 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=2, condition.on.surviva
         marginal.probs[nstates] = exp(marginal.probs.rescaled) / sum(exp(marginal.probs.rescaled))
         return(c(tip, marginal.probs))
     }
+    cat(paste("Finished. Calculating marginal probabilities for ", nb.tip, " tips...", sep=""), "\n")
     tip.marginals <- mclapply(1:nb.tip, TipEval, mc.cores=n.cores)
     obj$tip.mat = matrix(unlist(tip.marginals), ncol = 26+1, byrow = TRUE)
     colnames(obj$tip.mat)  <- c("id", "(0A)", "(0B)", "(0C)", "(0D)", "(0E)", "(0F)", "(0G)", "(0H)", "(0I)", "(0J)", "(0K)", "(0L)", "(0M)", "(0N)", "(0O)", "(0P)", "(0Q)", "(0R)", "(0S)", "(0T)", "(0U)", "(0V)", "(0W)", "(0X)", "(0Y)", "(0Z)")
     
+    cat("Done.","\n")
     rates.mat <- matrix(0, 2, 26)
     index.vector <- 1:52
     rates.mat[1,] <- model.vec[index.vector %% 2 == 1][-27]
@@ -741,6 +893,29 @@ ParameterTransformGeoSSE <- function(x, assume.cladogenetic=TRUE){
             rates.mat[3,] <- x[2,] / x[1,]
             rates.mat[3,is.na(rates.mat[3,])] = 0
         }
+    }
+    rates.mat <- rbind(x, rates.mat)
+    return(rates.mat)
+}
+
+
+ParameterTransformfHiSSE <- function(x){
+    if(dim(x)[2] == 8){
+        rates.mat <- matrix(0, 3, 8)
+        rownames(rates.mat) <- c("net.div", "speciation", "extinction")
+        colnames(rates.mat) <- c("(0A)", "(1A)", "(0B)", "(1B)", "(0C)", "(1C)", "(0D)", "(1D)")
+        rates.mat[1,] <- (x[1,] / (1 + x[2,])) - ((x[1,] * x[2,]) / (1 + x[2,]))
+        rates.mat[2,] <- x[1,] / (1 + x[2,])
+        rates.mat[3,] <- (x[1,] * x[2,]) / (1 + x[2,])
+        rates.mat[3,is.na(rates.mat[3,])] = 0
+    }else{
+        rates.mat <- matrix(0, 3, 2)
+        rownames(rates.mat) <- c("net.div", "speciation", "extinction")
+        colnames(rates.mat) <- c("(0A)","(1A)")
+        rates.mat[1,] <- (x[1,] / (1 + x[2,])) - ((x[1,] * x[2,]) / (1 + x[2,]))
+        rates.mat[2,] <- x[1,] / (1 + x[2,])
+        rates.mat[3,] <- (x[1,] * x[2,]) / (1 + x[2,])
+        rates.mat[3,is.na(rates.mat[3,])] = 0
     }
     rates.mat <- rbind(x, rates.mat)
     return(rates.mat)

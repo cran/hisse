@@ -110,8 +110,6 @@ trans.rate <- TransMatMakerMuHiSSE(hidden.traits=1)
 print(trans.rate)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  turnover <- c(1,2,3,4)
-#  extinction.fraction <- c(1,1,1,1)
 #  MuHiSSE <- MuHiSSE(phy=phy, data=states.trans, f=f, turnover=turnover,
 #                       eps=extinction.fraction, hidden.states=TRUE,
 #                       trans.rate=trans.rate)

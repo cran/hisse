@@ -21,6 +21,8 @@ extern void initmod_fhinoclass();
 extern void initmod_fgeosse();
 extern void initmod_fnoclass();
 extern void initmod_misse();
+extern void initmod_fbisse();
+extern void initmod_fhisse();
 
 extern void maddison_DE_bisse(void *, void *, void *, void *, void *, void *);
 extern void maddison_DE_hisse(void *, void *, void *, void *, void *, void *);
@@ -36,6 +38,8 @@ extern void fnotclasse_more_derivs(void *, void *, void *, void *, void *, void 
 extern void fclasse_geosse_equivalent_derivs(void *, void *, void *, void *, void *, void *);
 extern void fnotclasse_derivs(void *, void *, void *, void *, void *, void *);
 extern void misse_derivs(void *, void *, void *, void *, void *, void *);
+extern void maddison_DE_fbisse(void *, void *, void *, void *, void *, void *);
+extern void maddison_DE_fhisse(void *, void *, void *, void *, void *, void *);
 
 extern void set_birth_bisse_void(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void set_birth_hisse_null_void(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -56,6 +60,8 @@ static const R_CMethodDef CEntries[] = {
     {"initmod_fgeosse",		            (DL_FUNC) &initmod_fgeosse,                 0},
     {"initmod_fnoclass",		        (DL_FUNC) &initmod_fnoclass,                0},
     {"initmod_misse",		            (DL_FUNC) &initmod_misse,                   0},
+    {"initmod_fbisse",                  (DL_FUNC) &initmod_fbisse,                  0},
+    {"initmod_fhisse",                  (DL_FUNC) &initmod_fhisse,                  0},
     {"maddison_DE_bisse",               (DL_FUNC) &maddison_DE_bisse,               6},
     {"maddison_DE_hisse",               (DL_FUNC) &maddison_DE_hisse,               6},
     {"maddison_DE_hisse_null",          (DL_FUNC) &maddison_DE_hisse_null,          6},
@@ -70,6 +76,8 @@ static const R_CMethodDef CEntries[] = {
     {"fclasse_geosse_equivalent_derivs",(DL_FUNC) &fclasse_geosse_equivalent_derivs,6},
     {"fnotclasse_derivs",               (DL_FUNC) &fnotclasse_derivs,               6},
     {"misse_derivs",                    (DL_FUNC) &misse_derivs,                    6},
+    {"maddison_DE_fbisse",              (DL_FUNC) &maddison_DE_fbisse,              6},
+    {"maddison_DE_fhisse",              (DL_FUNC) &maddison_DE_fhisse,              6},
     {"set_birth_bisse_void",            (DL_FUNC) &set_birth_bisse_void,           29},
     {"set_birth_hisse_null_void",       (DL_FUNC) &set_birth_hisse_null_void,      54},
     {"set_birth_hisse_void",            (DL_FUNC) &set_birth_hisse_void,           59},
