@@ -5,26 +5,26 @@ phy <- read.tree("whales_Steemanetal2009.tre")
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1)
 #  eps <- c(1)
-#  one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+#  one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1,2)
 #  eps <- c(1,1)
-#  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+#  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  #rate classes A:C
 #  turnover <- c(1,2,3)
 #  eps <- c(1,1,1)
-#  three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+#  three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 #  #rate classes A:D
 #  turnover <- c(1,2,3,4)
 #  eps <- c(1,1,1,1)
-#  four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+#  four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 #  #rate classes A:E
 #  turnover <- c(1,2,3,4,5)
 #  eps <- c(1,1,1,1,1)
-#  five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+#  five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1,2)
@@ -77,6 +77,13 @@ misse.results.list[[5]] = five.rate.recon
 plot.misse.states(misse.results.list, rate.param="net.div", show.tip.label=TRUE, type="phylogram",
                   fsize=.25, legend="none")
 
+## ---- eval=FALSE---------------------------------------------------------
+#  turnover <- c(1,2)
+#  eps <- c(0,0)
+
+## ---- eval=FALSE---------------------------------------------------------
+#  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, fixed.eps=0.9)
+
 ## ---- eval=TRUE----------------------------------------------------------
 two.rate
 three.rate
@@ -91,4 +98,22 @@ expected.transitions.three
 load("misse.support.Rsave")
 two.rate.support$ci[,"q0"]
 three.rate.support$ci[,"q0"]
+
+## ---- eval=FALSE---------------------------------------------------------
+#  model.set <- MiSSEGreedy(tree, possible.combos=generateMiSSEGreedyCombinations(4), n.cores=4)
+
+## ---- eval=FALSE---------------------------------------------------------
+#  model.recons <- as.list(1:length(model.set))
+#  for (model_index in 1:length(model.set)) {
+#      nturnover <- length(unique(model.set[[model_index]]$turnover))
+#      neps <- length(unique(model.set[[model_index]]$eps))
+#      misse_recon <- MarginReconMiSSE(phy = model.set[[model_index]]$phy, f = 1,
+#                                      hidden.states = nturnover,
+#                                      pars = model.set[[model_index]]$solution,
+#                                      aic = model.set[[model_index]]$AIC)
+#      model.recons[[model_index]] <- misse_recon
+#  }
+
+## ---- eval=FALSE---------------------------------------------------------
+#  tip.rates <- GetModelAveRates(model.recons, type = c("tips"))
 

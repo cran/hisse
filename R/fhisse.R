@@ -136,8 +136,8 @@ hisse.new <- function(phy, data, f=c(1,1), turnover=c(1,2), eps=c(1,2), hidden.s
         eps.tmp[which(eps.tmp > 0)] = (eps.tmp[which( eps.tmp > 0)] + max(pars.tmp))
         pars.tmp <- c(pars.tmp, eps.tmp)
         for.late.adjust <- max(pars.tmp)
-        rows <- c("(0A)", "(1A)", "(0B)", "(1B)", "(0C)", "(1C)")
-        cols <- c("(1A)", "(0A)", "(1B)", "(0B)", "(1C)", "(0C)")
+        rows <- c("(0A)", "(1A)", "(0B)", "(1B)", "(0C)", "(1C)", "(0D)", "(1D)")
+        cols <- c("(1A)", "(0A)", "(1B)", "(0B)", "(1C)", "(0C)", "(1D)", "(0D)")
         trans.tmp <- trans.rate[cbind(rows,cols)]
         trans.tmp[which(trans.tmp > 0)] = (trans.tmp[which(trans.tmp > 0)] + max(pars.tmp))
         pars.tmp <- c(pars.tmp, trans.tmp)
@@ -154,7 +154,7 @@ hisse.new <- function(phy, data, f=c(1,1), turnover=c(1,2), eps=c(1,2), hidden.s
         pars.tmp <- c(turnover[1:2], eps.tmp[1:2], trans.tmp[1:2], category.rate.shiftA, turnover[3:4], eps.tmp[3:4], trans.tmp[3:4], category.rate.shiftB, turnover[5:6], eps.tmp[5:6], trans.tmp[5:6], category.rate.shiftC, turnover[7:8], eps.tmp[7:8], trans.tmp[7:8], category.rate.shiftD)
         pars[1:length(pars.tmp)] <- pars.tmp
     }
-
+    
     np <- max(pars)
     pars[pars==0] <- np+1
     
@@ -767,7 +767,7 @@ print.fhisse.fit <- function(x,...){
     ## Keep only the parameters estimated:
     par.list <- x$solution[ !x$index.par == set.zero ]
     ntips <- Ntip( x$phy )
-    nstates <- ncol( x$trans.matrix )/4
+    nstates <- ncol( x$trans.matrix )/2
     output <- c(x$loglik, x$AIC, x$AICc, ntips, nstates)
     names(output) <- c("lnL", "AIC", "AICc", "n.taxa", "n.hidden.states")
     cat("\n")

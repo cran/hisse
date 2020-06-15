@@ -29,32 +29,30 @@ As with `hisse`, rather than optimizing $\lambda_i$ and $\mu_i$ separately, `MiS
 ```{r, eval=FALSE}
 turnover <- c(1)
 eps <- c(1)
-one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 ```
 
 Pretty simple. Now to fit a model that contains two rate classes, we will simply expand out the turnover vector:
-
 ```{r, eval=FALSE}
 turnover <- c(1,2)
 eps <- c(1,1)
-two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 ```
 
 Overall, `MiSSE` allows up to 26 possible hidden states in diversification (denoted by A-Z), and in this example since we fit two rate classes, we have two hidden states, A and B, impacting turnover rates. Here is the rest of the model set applied to the whale data set:
-
 ```{r, eval=FALSE}
 #rate classes A:C
 turnover <- c(1,2,3)
 eps <- c(1,1,1)
-three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 #rate classes A:D
 turnover <- c(1,2,3,4)
 eps <- c(1,1,1,1)
-four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 #rate classes A:E
 turnover <- c(1,2,3,4,5)
 eps <- c(1,1,1,1,1)
-five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
+five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
 ```
 
 We can also let $\epsilon_i$ vary across the tree:
@@ -130,6 +128,21 @@ plot.misse.states(misse.results.list, rate.param="net.div", show.tip.label=TRUE,
                   fsize=.25, legend="none")
 ```
 
+
+## Fixing extinction fraction
+
+Estimating extinction is hard. This affects all diversification models (even if all you want and look at is speciation rate, extinction rate estimates still affect what this is as they affect the likelihood). It is most noticeable in MiSSE with extinction fraction (extinction rate divided by speciation rate). One option, following Magallon & Sanderson (2001), is to set extinction fraction at set values. We have made this straightforward to do in the `MiSSE()` function call. The first step is to setup a Yule-based `MiSSE()` run by supplying a vector of zeros for `eps` that is of equal length to the number of turnover rate classes:
+```{r, eval=FALSE}
+turnover <- c(1,2)
+eps <- c(0,0)
+```
+
+In the function call, there is an option called `fixed.eps`. Normally, this is set to `NULL`, which indicates that extinction fraction is to be estimated. When a value is supplied to `fixed.eps` this will be the value used throughout the parameter search. Here we assume there are two rate classes and a fixed extinction fraction of 0.90:
+```{r, eval=FALSE}
+two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, fixed.eps=0.9)
+```
+
+
 ## Other considerations
 
 Like with `hisse`, `GeoHiSSE`, and `MuHiSSE`, there are functions available for generating estimates of the uncertainty in the parameter estimates (i.e., `SupportRegionMiSSE()`), and to obtain model averages (i.e., `GetModelAveRates()`) for nodes, for tips, or for both to be used in post-hoc tests. Users are encouraged to read other vignettes and help pages provided for more information. For more conceptual discussions of these functions and ideas, readers are also encouraged to read Caetano et al. (2018). 
@@ -137,14 +150,12 @@ Like with `hisse`, `GeoHiSSE`, and `MuHiSSE`, there are functions available for 
 There are two additional items that are worth mentioning. First, like with `MuHiSSE`, I would recommend users try multiple random starting points when optimizing any given model with `MiSSE`. In Nakov et al. (2018), we found that the default starting values often did not return the highest log likelihood. To alleviate this issue, we performed $\ge$ 50 maximum likelihood optimizations for each model, each initiated from a distinct starting point. All functions within `hisse` are provided with `starting.vals` option for these purposes. 
 
 Second, we note that `MiSSE` may seem slower than most other functions within `hisse`. This is somewhat intentional. Underneath the hood we have implemented a lot of checks to the integration for calculating probabilities along branches. This will mean that often times weird messages will spit out to the screen. For now, ignore them, the optimization "feels" these issues and takes necessary action. But this also means that users must pay particular attention to the complexity of the models they are fitting and critically think whether or not the parameters make sense. For example, in cetacean tree used above, I attemped to fit a model with three, four, and five hidden states, A, B, and C, but the reconstructions indicated a rather complicated, and highly uncertain, diversification history:
-
 ```{r, eval=TRUE}
 two.rate
 three.rate
 ```
 
 Note that the likelihood was a significant improvement from the two rate model, but the transition rate, $q$, is roughly two orders of magnitude higher ($q=0.131$) relative to the two-rate model estimate ($q=0.004$). The same is true for the four and five rate class models. What does this mean? Well, we can convert this into the expected number of transitions by multiplying the rate by the sum of the branch lengths in the cetacean phylogeny:
-
 ```{r, eval=TRUE}
 expected.transitions.two <- 0.004 * sum(two.rate$phy$edge.length)
 expected.transitions.two
@@ -153,7 +164,6 @@ expected.transitions.three
 ```
 
 At first glance, this might seem that something is off with the three-rate class model -- e.g., 3 vs. 107 number of shifts among the different classes? However, examining the support region around the parameters can give an indication as to the overall reliability of these estimates:
-
 ```{r, eval=TRUE}
 load("misse.support.Rsave")
 two.rate.support$ci[,"q0"]
@@ -162,16 +172,56 @@ three.rate.support$ci[,"q0"]
 
 In the case of the two rate class model, even though the MLE indicates very few transitions among the rate classes, there is a model within 2 log likelihood units that suggests as many as 17 expected transitions. In other words, the $q$ estimate even under the two rate class model is fairly certain. We suspect that what is being picked up by these models is something that is both clade-specific (i.e., implied by the two rate class model) and time-dependent (i.e., implied by the three, four, and five rate class models), with the latter exerting the strongest influence on the overall fit. 
 
+
+## MiSSE Greedy
+
+With the way `MiSSE()` is implemented there are 52 possible models one could try, which would require coding each model by hand. Of course, a model where there are 26 different classes of turnover rates may be far too parameter rich that it's not even worth trying. The difficulty then is determining what the "right" stopping point is in terms of adding further model complexity. We implemented `MiSSEGreedy()` as means of automating the process of fitting a set of `MiSSE()` models. It first runs a chunk of models, determines the "best" based on AIC, then it continues on from that complexity until the a more complex model is less than some user defined $\Delta$AIC than the *current* best model. At that point, `MiSSEGreedy()` stops running new models. Since this is based on current best AICc, and we start with simplest models. However, note that this produces an asymmetry, where a terrible model with no rate variation is always included, but a slightly less terrible model with 26 turnover rates might never be evaluated.
+
+This functions work much faster when run in parallel. To do this, we include an option `n.cores` to allow users to set the number of available cores on your machine. The default is one core. Since many models are evaluated, the most natural approach is to run one model per core, see if at least one of the models are still ok, then send out the next models out to all the cores. Setting n.cores to the number of parallel jobs you want, and leaving chunk.size set to NULL, will do this. However, this is slightly inefficient -- the odds are that some cores will finish earlier than others, and will be waiting until all finish. So a different approach is to set a chunk.size greater than n.cores -- it will still use no more than n.cores at a time, but once one model in the set finishes it will send off the next until all models in the chunk are run. This keeps the computer even busier, but then it won't stop to check to make sure the models are still feasible as often, and it only saves intermediate results after each chunk of models finishes. Our recommendation is to use n.cores=parallel::detectCores() if you're on a machine where you can use all the cores and leave chunk.size unspecified (so it will also default to n.cores), but it's up to you.
+
+After every chunk of models are done, this function will display the status: what models have been run, what the likelihoods and AICs are, etc. It will also predict how long future runs will check, based on a linear regression between the number of free parameters and log(minutes to run). These are just estimates based on the runs so far, but it's a stochastic search and can take more or less time. Here is a very straightforward `MiSSEGreedy()` run:
+```{r, eval=FALSE}
+model.set <- MiSSEGreedy(tree, possible.combos=generateMiSSEGreedyCombinations(4), n.cores=4)
+```
+
+The output in `model.set` is a list of models evaluated. From there you can just loop over each model and do the rate class reconstruction:
+```{r, eval=FALSE}
+model.recons <- as.list(1:length(model.set))
+for (model_index in 1:length(model.set)) {
+    nturnover <- length(unique(model.set[[model_index]]$turnover))
+    neps <- length(unique(model.set[[model_index]]$eps))
+    misse_recon <- MarginReconMiSSE(phy = model.set[[model_index]]$phy, f = 1, 
+                                    hidden.states = nturnover, 
+                                    pars = model.set[[model_index]]$solution, 
+                                    aic = model.set[[model_index]]$AIC)
+    model.recons[[model_index]] <- misse_recon
+}
+```
+
+As with any other function contained within `hisse`, the output from the character reconstruction can be used to obtain model averaged rates, such the estimated rates for each tip in the tree:
+```{r, eval=FALSE}
+tip.rates <- GetModelAveRates(model.recons, type = c("tips"))
+```
+
+We recommend also taking a look at the function `generateMiSSEFGreedyCombinations()`, which we used in the `MiSSEGreedy()` example above. This creates the set of combinations of models to run through `MiSSEGreedy()` as a data.frame. It has columns for the number of rates to estimate for turnover, the number of values to estimate for extinction fraction (eps), and any fixed values for eps to apply to the whole tree. You can add your own rows or delete some to this data.frame to add more or fewer combinations. By default, this comes out ordered so that simpler models are run first in `MiSSEGreedy()` but that is not required (but wise for most use cases), and you can reorder if you wish. `turnover.tries` and `eps.tries` set how many turnover and eps hidden states to try, respectively. If you wanted to try only 1, 3, and 7 hidden states for turnover you would set `turnover.tries = c(1, 3, 7)` for example.
+
+As discussed above estimating extinction rates is hard. This affects all diversification models (even if all you want and look at is speciation rate, extinction rate estimates still affect what this is as they affect the likelihood). It is most noticeable in MiSSE with eps, the extinction fraction (extinction rate divided by speciation rate). One option, following Magallon & Sanderson (2001), is to set extinction fraction at set values. By default, we use the somewhat arbitrary values of Magallon & Sanderson (2001) -- 0 (meaning a Yule model - no extinction) or 0.9 (a lot of extinction, though still less than paleontoligists find). You can set your own in `fixed.eps.tries`. If you only want to use fixed values, and not estimate, get rid of the NA, as well. However, don't "cheat" -- if you use a range of values for fixed.eps, it's basically doing a search for this, though the default AICc calculation doesn't "know" this to penalize it for another parameter.
+
+`HiSSE` and, by extension, `MiSSE` assume that a taxon has a particular hidden state. Thus, they're written to assume that we "paint" these states on the tree and a given state affects both turnover and eps. So if turnover has four hidden states, eps has four hidden states. They can be constrained: the easiest way is to have, say, turnover having an independent rate for each hidden state and eps having the same rate for all the hidden states. If `vary.both` is set to FALSE, all models are of this sort: if turnover varies, eps is constant across all hidden states, or vice versa. Jeremy Beaulieu prefers this. If `vary.both` is set to TRUE, both can vary: for example, there could be five hidden states for both turnover and eps, but turnover lets each of these have a different rate, but eps only allows three values (so that eps_A and eps_D might be forced to be equal, and eps_B and eps_E might be forced to be equal). Brian O'Meara would consider allowing this, while cautioning you about the risks of too many parameters.
+
+
 ## References
 
 Beaulieu, J.M., and B.C. O'Meara. (2016). Detecting hidden diversification shifts in models of trait-dependent speciation and extinction. Syst. Biol. 65:583-601.
 
-Caetano, D.S., B.C. O'Meara, and J.M. Beaulieu. 2018. Hidden state models improve state-dependent diversification approaches, including biogeographic models. Evolution, 72:2308-2324.
+Caetano, D.S., B.C. O'Meara, and J.M. Beaulieu. (2018). Hidden state models improve state-dependent diversification approaches, including biogeographic models. Evolution, 72:2308-2324.
 
-Nakov, T., Beaulieu, J.M., and Alverson, A.J. 2018. Freshwater diatoms diversify faster than marine in both planktonic and benthic habitats. bioRxiv, doi: https://doi.org/10.1101/406165.
+Magallón, S, and M.J. Sanderson. (2001). Absolute diversification rates in angiosperm clades. Evolution 55:1762-1780.
+
+Nakov, T., J.M. Beaulieu, and A.J. Alverson. (2018). Freshwater diatoms diversify faster than marine in both planktonic and benthic habitats. bioRxiv, doi: https://doi.org/10.1101/406165.
 
 Rabosky, D.L., and E.E. Goldberg. (2015). Model inadequacy and mistaken inferences of trait-dependent speciation. Syst. Biol. 64:340-355.
 
-Steeman, M.E., B. M.B. Hebsgaard, E. Fordyce, S.Y.W. Ho, D.L. Rabosky, R. Nielsen, C. Rahbek, H. Glenner, M.V. Sorensen, and E. Willerslev. 2009. Radiation of extant cetaceans driven by restructuring of the oceans. Syst. Biol. 58:573-585. 
+Steeman, M.E., B.M.B. Hebsgaard, E. Fordyce, S.Y.W. Ho, D.L. Rabosky, R. Nielsen, C. Rahbek, H. Glenner, M.V. Sorensen, and E. Willerslev. 2009. Radiation of extant cetaceans driven by restructuring of the oceans. Syst. Biol. 58:573-585. 
 
 
