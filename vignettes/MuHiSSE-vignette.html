@@ -559,7 +559,7 @@ print(trans.rate)
 ## (11)    0    4    6   NA
 </code></pre>
 
-<p>We can use the <code>ParDrop()</code> function to remove transitions to and from thr fourth state in the model:</p>
+<p>We can use the <code>ParDrop()</code> function to remove transitions to and from the fourth state in the model:</p>
 
 <pre><code class="r">trans.rate.mod &lt;- ParDrop(trans.rate, c(4,6,7,8))
 print(trans.rate.mod)

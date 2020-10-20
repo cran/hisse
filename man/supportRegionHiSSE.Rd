@@ -1,13 +1,13 @@
-\name{SupportRegionMiSSE}
-\alias{SupportRegionMiSSE}
-\title{Adaptive Sampling of the Likelihood Surface under MiSSE}
+\name{SupportRegionHiSSE}
+\alias{SupportRegionHiSSE}
+\title{Adaptive Sampling of the Likelihood Surface under the new version of HiSSE}
 \description{Adaptively samples points for each parameter to obtain an estimate of the confidence intervals.}
 \usage{
-SupportRegionMiSSE(misse.obj, n.points=1000, scale.int=0.1, desired.delta=2, 
+SupportRegionHiSSE(hisse.obj, n.points=1000, scale.int=0.1, desired.delta=2, 
 min.number.points=10, verbose=TRUE)
 }       
 \arguments{
-\item{misse.obj}{an object of class \code{misse.fit} that contains the MLE from a model run.}
+\item{hisse.obj}{an object of class \code{hisse.fit} that contains the MLE from a model run.}
 \item{n.points}{indicates the number of points to sample.}
 \item{scale.int}{the scaling multiplier that defines interval to randomly sample. By default the value is set to 0.1, meaning that values are drawn at random along an interval that encompasses 10 percent above and below the MLE.}
 \item{desired.delta}{defines the number lnL units away from the MLE to include. By default the value is set to 2.} 
@@ -15,12 +15,12 @@ min.number.points=10, verbose=TRUE)
 \item{verbose}{a logical indicating whether progress should be printed to the screen. The default is \code{TRUE}.}
 }
 \details{
-This function provides a means for sampling the likelihood surface quickly to estimate confidence intervals that reflect the uncertainty in the MLE. The function starts with the MLE from the hisse run. It then uses a scaling multiplier to generate an interval by which to randomly alter each parameter. However, the algorithm was designed to \dQuote{feel} the boundaries of the random search. In other words, when the algorithm begins to sample the hinterlands of the surface, it will know to restrict the boundary to allow sampling of more reasonable values based on the currently sampled set. The goal of this sampling process is to find points within some desired distance from the MLE; by default we assume this distance is 2 lnLik. The confidence interval can be estimated directly from these points. The full set of points tried are also provided and can be used to generate contour plots (though, it is not entirely straightforward to do so -- but certainly doable).
+This is the support region estimator for the new version of \code{hisse}. 
 
 Note the scale.int option. This roughly sets the variance for sampling points. If this seems to take a long while to find enough points within the desired likelihood region consider reducing scale.int to either 0.05 or, in some cases, 0.01. 
 }
 \value{
-\code{SupportRegionMiSSE} returns an object of class \code{misse.support}. This is a list with elements:
+\code{SupportRegionHiSSE} returns an object of class \code{hisse.support}. This is a list with elements:
 \item{$ci}{the sampled confidence interval.}
 \item{$points.within.region}{the sampled points that within 2lnL units from the MLE.}
 \item{$all.points}{all points sampled by the adaptive sampler.}

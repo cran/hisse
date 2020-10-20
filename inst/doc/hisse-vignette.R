@@ -33,7 +33,7 @@ turnover.anc = c(1,2,3,4)
 eps.anc = c(0,0,0,0)
 
 ## ---- eval=TRUE----------------------------------------------------------
-trans.rates = TransMatMaker(hidden.states=TRUE)
+trans.rates = TransMatMaker.old(hidden.states=TRUE)
 trans.rates
 
 ## ---- eval=TRUE----------------------------------------------------------
@@ -55,32 +55,32 @@ trans.rates.nodual.allequal[!is.na(trans.rates.nodual.allequal) &
 trans.rates.nodual.allequal
 
 ## ---- eval=TRUE----------------------------------------------------------
-trans.rates.bisse = TransMatMaker(hidden.states=FALSE)
+trans.rates.bisse = TransMatMaker.old(hidden.states=FALSE)
 trans.rates.bisse
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  pp = hisse(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
-#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal)
+#  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
+#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=FALSE)
 
 ## ---- eval=TRUE----------------------------------------------------------
 turnover.anc = c(1,2,0,3)
 eps.anc = c(1,2,0,3)
 
 ## ---- eval=TRUE----------------------------------------------------------
-trans.rates <- TransMatMaker(hidden.states=TRUE)
+trans.rates <- TransMatMaker.old(hidden.states=TRUE)
 trans.rates.nodual.no0B <- ParDrop(trans.rates, c(2,3,5,7,8,9,10,12))
 trans.rates.nodual.no0B
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  pp = hisse(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
-#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, output.type="net.div")
+#  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
+#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, output.type="net.div", sann=FALSE)
 
 ## ---- eval=TRUE----------------------------------------------------------
 turnover.anc = c(1,1,2,2)
 eps.anc = c(1,1,2,2)
 
 ## ---- eval=TRUE----------------------------------------------------------
-trans.rates = TransMatMaker(hidden.states=TRUE)
+trans.rates = TransMatMaker.old(hidden.states=TRUE)
 trans.rates.nodual = ParDrop(trans.rates, c(3,5,8,10))
 trans.rates.nodual.allequal = ParEqual(trans.rates.nodual, c(1,2,1,3,1,4,1,5,1,6,1,7,1,8))
 trans.rates.nodual.allequal
@@ -101,8 +101,8 @@ trans.rates.nodual.threerates[to.change] = 3
 trans.rates.nodual.threerates
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  pp = hisse(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
-#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal)
+#  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
+#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=FALSE)
 
 ## ----global_options, include=FALSE---------------------------------------
 knitr::opts_chunk$set(fig.width=7, fig.height=5)
