@@ -37,7 +37,7 @@ hisse <- function(phy, data, f=c(1,1), turnover=c(1,2), eps=c(1,2), hidden.state
 
     setDTthreads(threads=dt.threads)
 
-    if(sann == FALSE & starting.vals == NULL){
+    if(sann == FALSE & is.null(starting.vals)){
         warning("You have chosen to rely on the internal starting points that generally work but does not guarantee finding the MLE.")
     }
 
@@ -412,7 +412,7 @@ SingleChildProbHiSSE <- function(cache, pars, compD, compE, start.time, end.time
             prob.subtree.cal[9:16] <- cache$bad.likelihood
             return(prob.subtree.cal)
         }else{
-            prob.subtree.cal[5:8] <- cache$bad.likelihood
+            prob.subtree.cal[3:4] <- cache$bad.likelihood
             return(prob.subtree.cal)
         }
     }else{

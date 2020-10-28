@@ -20,7 +20,7 @@ suppressWarnings(library(diversitree))
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1,1)
 #  extinction.fraction <- c(1,1)
-#  f <- c(1,1,1,1)
+#  f <- c(1,1)
 
 ## ---- eval=TRUE----------------------------------------------------------
 trans.rates.bisse <-  TransMatMakerHiSSE(hidden.traits=0)
@@ -34,7 +34,7 @@ print(trans.rates.bisse)
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1,2)
 #  extinction.fraction <- c(1,1)
-#  BiSSE <- hiSSE(phy=phy, data=sim.dat, f=f, turnover=turnover,
+#  BiSSE <- hisse(phy=phy, data=sim.dat, f=f, turnover=turnover,
 #                       eps=extinction.fraction, hidden.states=FALSE,
 #                       trans.rate=trans.rates.bisse)
 
@@ -48,7 +48,7 @@ trans.rate.hisse <- TransMatMakerHiSSE(hidden.traits=1)
 print(trans.rate.hisse)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  HiSSE <- hisse(phy=phy, data=states.trans, f=f, turnover=turnover,
+#  HiSSE <- hisse(phy=phy, data=sim.dat, f=f, turnover=turnover,
 #                       eps=extinction.fraction, hidden.states=TRUE,
 #                       trans.rate=trans.rate.hisse)
 

@@ -248,7 +248,7 @@ sim.dat[,2] = sim.dat[,2] - 1
 
 <pre><code class="r">turnover &lt;- c(1,1)
 extinction.fraction &lt;- c(1,1)
-f &lt;- c(1,1,1,1)
+f &lt;- c(1,1)
 </code></pre>
 
 <p>Next, we have to set up a transition matrix. There is a function provided to make this easy, and allows users to customize the matrix to fit particular hypotheses. Be sure to look at the options on this function call, for allowing diagonals and for customizing the matrix when you have character independent model. </p>
@@ -273,7 +273,7 @@ print(trans.rates.bisse)
 
 <pre><code class="r">turnover &lt;- c(1,2)
 extinction.fraction &lt;- c(1,1)
-BiSSE &lt;- hiSSE(phy=phy, data=sim.dat, f=f, turnover=turnover, 
+BiSSE &lt;- hisse(phy=phy, data=sim.dat, f=f, turnover=turnover, 
                      eps=extinction.fraction, hidden.states=FALSE, 
                      trans.rate=trans.rates.bisse)
 </code></pre>
@@ -302,7 +302,7 @@ print(trans.rate.hisse)
 
 <p>Now, we can just plug these options into MuHiSSE:</p>
 
-<pre><code class="r">HiSSE &lt;- hisse(phy=phy, data=states.trans, f=f, turnover=turnover, 
+<pre><code class="r">HiSSE &lt;- hisse(phy=phy, data=sim.dat, f=f, turnover=turnover, 
                      eps=extinction.fraction, hidden.states=TRUE, 
                      trans.rate=trans.rate.hisse)
 </code></pre>

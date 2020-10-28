@@ -83,7 +83,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #  mod5 <- GeoHiSSE(phy = phy, data = sim.dat, f=c(1,1,1),
 #                    turnover=turnover, eps=eps,
 #                    hidden.states=FALSE, trans.rate=trans.rate.mod,
-#                    turnover.upper=100, trans.upper=10, sann=FALSE,
+#                    turnover.upper=100, trans.upper=10,
 #                    assume.cladogenetic = FALSE)
 
 ## ---- eval=TRUE----------------------------------------------------------
