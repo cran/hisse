@@ -60,7 +60,7 @@ trans.rates.bisse
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
-#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=FALSE)
+#             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=TRUE)
 
 ## ---- eval=TRUE----------------------------------------------------------
 turnover.anc = c(1,2,0,3)
@@ -109,7 +109,7 @@ knitr::opts_chunk$set(fig.width=7, fig.height=5)
 
 ## ---- eval=TRUE----------------------------------------------------------
 # pp.recon <- MarginRecon(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
-#                         , hidden.states = pp$hidden.states, aic = pp$AIC)
+#                         , hidden.states = pp$hidden.states, AIC = pp$AIC)
 load("testrecon1.Rsave") # Line above shows the command to create this result.
 class(pp.recon)
 pp.recon
@@ -122,11 +122,11 @@ plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE,
                   rate.range=c(0,0.072))
 
 ## ---- eval=TRUE----------------------------------------------------------
-pp.recon$aic
+pp.recon$AIC
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  pp.recon = MarginRecon(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution,
-#                         aic=pp$aic, n.cores=2)
+#                         AIC=pp$AIC, n.cores=2)
 
 ## ---- eval=TRUE----------------------------------------------------------
 hisse.results.list = list()

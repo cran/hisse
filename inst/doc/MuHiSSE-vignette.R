@@ -50,7 +50,7 @@ model.vec[1:20] = pars.hisse
 phy$node.label = NULL
 cache <- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE, 
                                          nb.tip=Ntip(phy), nb.node=Nnode(phy), 
-                                         bad.likelihood=exp(-500), ode.eps=0)
+                                         bad.likelihood=exp(-250), ode.eps=0)
 gen <- hisse:::FindGenerations(phy)
 dat.tab <- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,1), hidden.states=TRUE)
 hisse.constrained <- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
@@ -69,7 +69,7 @@ model.vec[1:96] = pars.hisse
 phy$node.label = NULL
 cache <- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE, 
                                          nb.tip=Ntip(phy), nb.node=Nnode(phy), 
-                                         bad.likelihood=exp(-500), ode.eps=0)
+                                         bad.likelihood=exp(-250), ode.eps=0)
 gen <- hisse:::FindGenerations(phy)
 dat.tab <- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,1), hidden.states=TRUE)
 hisse.constrained <- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 
@@ -213,7 +213,7 @@ model.vec[1:20] = pars.hisse
 phy$node.label = NULL
 cache <- hisse:::ParametersToPassMuHiSSE(model.vec=model.vec, hidden.states=TRUE, 
                                          nb.tip=Ntip(phy), nb.node=Nnode(phy), 
-                                         bad.likelihood=exp(-500), ode.eps=0)
+                                         bad.likelihood=exp(-250), ode.eps=0)
 gen <- hisse:::FindGenerations(phy)
 dat.tab <- hisse:::OrganizeData(states.trans, phy, f=c(1,1,1,0), hidden.states=TRUE)
 muhisse.constrained <- hisse:::DownPassMuHisse(dat.tab, gen=gen, cache=cache, 

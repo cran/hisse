@@ -62,7 +62,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #                    turnover.upper=100, trans.upper=10)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  ## Model 4. GeoHiSSE model with 1 hidden trait, no range-dependent diversification.
+#  ## Model 4. GeoHiSSE model with 1 hidden trait, range-dependent diversification.
 #  turnover <- c(1,2,3,4,5,6)
 #  eps <- c(1,1,1,1)
 #  trans.rate <- TransMatMakerGeoHiSSE(hidden.traits=1)
@@ -83,7 +83,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #  mod5 <- GeoHiSSE(phy = phy, data = sim.dat, f=c(1,1,1),
 #                    turnover=turnover, eps=eps,
 #                    hidden.states=FALSE, trans.rate=trans.rate.mod,
-#                    turnover.upper=100, trans.upper=10,
+#                    turnover.upper=100, trans.upper=10, sann=FALSE,
 #                    assume.cladogenetic = FALSE)
 
 ## ---- eval=TRUE----------------------------------------------------------
@@ -98,19 +98,19 @@ GetAICWeights(list.geohisse, criterion="AIC")
 #  recon.mod1 <- MarginReconGeoSSE(phy = mod1$phy, data = mod1$data, f = mod1$f,
 #                                   pars = mod1$solution, hidden.states = 1,
 #                                   root.type = mod1$root.type, root.p = mod1$root.p,
-#                                   aic = mod1$AIC, n.cores = 4)
+#                                   AIC = mod1$AIC, n.cores = 4)
 #  recon.mod2 <- MarginReconGeoSSE(phy = mod2$phy, data = mod2$data, f = mod2$f,
 #                                   pars = mod2$solution, hidden.states = 1,
 #                                   root.type = mod2$root.type, root.p = mod2$root.p,
-#                                   aic = mod2$AIC, n.cores = 4)
+#                                   AIC = mod2$AIC, n.cores = 4)
 #  recon.mod3 <- MarginReconGeoSSE(phy = mod3$phy, data = mod3$data, f = mod3$f,
 #                                   pars = mod3$solution, hidden.states = 2,
 #                                   root.type = mod3$root.type, root.p = mod3$root.p,
-#                                   aic = mod3$AIC, n.cores = 4)
+#                                   AIC = mod3$AIC, n.cores = 4)
 #  recon.mod4 <- MarginReconGeoSSE(phy = mod4$phy, data = mod4$data, f = mod4$f,
 #                                   pars = mod4$solution, hidden.states = 2,
 #                                   root.type = mod4$root.type, root.p = mod4$root.p,
-#                                   aic = mod4$AIC, n.cores = 4)
+#                                   AIC = mod4$AIC, n.cores = 4)
 
 ## ---- eval=TRUE----------------------------------------------------------
 ## Load previous results:

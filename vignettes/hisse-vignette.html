@@ -206,7 +206,7 @@ hr {
 <body>
 <h2>Getting started</h2>
 
-<p>As of version 1.9.6, we now provide a new set of functions that execute more complex and potentially faster version of the HiSSE model described by Beaulieu and O&#39;Meara (2016). One of the main differences here is that the model allows up to 8 hidden categories, which means that both the character-independent model (hisse.null4) is called from the same function as the BiSSE and HiSSE models. We also implement a more efficient means of carrying out branch calculations, so it is exceptionally faster than in previous versions. Nevertheless, we have maintained the original implementation of the hisse model, and we have kept this tutorial to gives some basic information on how to set up and execute the original hisse function. For information about how to use the new <code>hisse()</code> function see the <em>A newer, faster HiSSE function</em> vignette.</p>
+<p>As of version 1.9.6, we now provide a new set of functions that execute more complex and potentially faster version of the HiSSE model described by Beaulieu and O&#39;Meara (2016). One of the main differences here is that the model allows up to 8 hidden categories, which means that both the character-independent model (hisse.null4) is called from the same function as the BiSSE and HiSSE models. We also implement a more efficient means of carrying out branch calculations, so it is exceptionally faster than in previous versions. Nevertheless, we have maintained the original implementation of the hisse model, and we have kept this tutorial to gives some basic information on how to set up and execute the original hisse function. For information about how to use the new <code>hisse()</code> function see the <em>A newer, faster HiSSE function</em> vignette. We highly recommend you use the newer version.</p>
 
 <p>Before getting started, be sure to load the hisse package:</p>
 
@@ -357,7 +357,7 @@ trans.rates.bisse
 <p>Whatever transition matrix is designed, it is supplied to the <code>trans.rate=</code> argument in the <code>hisse()</code> call:</p>
 
 <pre><code class="r">pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc, 
-           eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=FALSE)
+           eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=TRUE)
 </code></pre>
 
 <h2>A common mistake</h2>
@@ -454,7 +454,7 @@ trans.rates.nodual.threerates
 <p>Our HiSSE package provides plotting functionality in <code>plot.hisse.states()</code> for character state reconstructions of <code>class hisse.states</code> output by our <code>MarginRecon()</code> function. Specifically, the function provides an overlay of the state reconstructions on the rate estimates. There are a couple of options for how these reconstructions to be plotted. First, a single <code>hisse.states</code> object can be supplied and it will provide a heat map of the diversification rate parameter of choice. Users can choose among turnover, net diversification (&ldquo;net.div&rdquo;), speciation, extinction, or extinction fraction (&ldquo;extinction.fraction&rdquo;). I&#39;ve provided example <code>hisse.states</code> output from the example data set simulated above. This particular model assumed two diversification rate parameters &ndash; i.e., turnover.anc=c(1,1,1,2), and eps.anc=c(1,1,1,1). Let&#39;s load this file and check that everything has loaded correctly and is of the proper <code>hisse.states</code> class:</p>
 
 <pre><code class="r"># pp.recon &lt;- MarginRecon(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
-#                         , hidden.states = pp$hidden.states, aic = pp$AIC)
+#                         , hidden.states = pp$hidden.states, AIC = pp$AIC)
 load(&quot;testrecon1.Rsave&quot;) # Line above shows the command to create this result.
 class(pp.recon)
 </code></pre>
@@ -531,7 +531,7 @@ class(pp.recon)
 
 <p>A first initial step when doing the modeling-averaging approach is to make sure that the <code>hisse.states</code> objects contain the AIC from the model fit embedded in it. The plotting function will not work without it:</p>
 
-<pre><code class="r">pp.recon$aic
+<pre><code class="r">pp.recon$AIC
 </code></pre>
 
 <pre><code>## [1] 364.8615
@@ -540,7 +540,7 @@ class(pp.recon)
 <p>If this returns a NULL, then something has gone wrong and you should check how you performed the reconstructions. The AIC for the model can be supplied as an argument in the <code>MarginRecon()</code> function (using the <code>pp</code> object we defined above):</p>
 
 <pre><code class="r">pp.recon = MarginRecon(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution, 
-                       aic=pp$aic, n.cores=2)
+                       AIC=pp$AIC, n.cores=2)
 </code></pre>
 
 <p>I&#39;ve created two additional <code>hisse.states</code> objects that I will use to demonstrate how to plot model-averaged states and rates: one reconstruction is based on the null-two model [turnover.anc=c(1,1,2,2)], and the other assumes four free turnover rates [i.e., turnover.anc=c(1,2,3,4)]; in all cases I assumed equal transition rates and equal extinction fractions. I recognize that there are many ways to generate a list. But here is one way, where I&#39;m assuming that the marginal reconstructions from three models are saved to the directory we are working from:</p>

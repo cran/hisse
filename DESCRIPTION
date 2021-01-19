@@ -1,6 +1,6 @@
 Package: hisse
-Version: 1.9.10
-Date: 2020-10-27
+Version: 1.9.13
+Date: 2021-1-16
 Title: Hidden State Speciation and Extinction
 Authors@R: c(person("Jeremy", "Beaulieu", role=c("aut", "cre"),
                      email = "jmbeauli@uark.edu"),
@@ -16,10 +16,10 @@ License: GPL (>= 2)
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Packaged: 2020-10-27 14:52:23 UTC; jmbeauli
+Packaged: 2021-01-18 22:52:02 UTC; jmbeauli
 Author: Jeremy Beaulieu [aut, cre],
   Brian O'Meara [aut],
   Daniel Caetano [aut],
   James Boyko [aut]
 Repository: CRAN
-Date/Publication: 2020-10-28 09:00:04 UTC
+Date/Publication: 2021-01-19 15:40:15 UTC

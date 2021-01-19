@@ -5,26 +5,26 @@ phy <- read.tree("whales_Steemanetal2009.tre")
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1)
 #  eps <- c(1)
-#  one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+#  one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1,2)
 #  eps <- c(1,1)
-#  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+#  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  #rate classes A:C
 #  turnover <- c(1,2,3)
 #  eps <- c(1,1,1)
-#  three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+#  three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 #  #rate classes A:D
 #  turnover <- c(1,2,3,4)
 #  eps <- c(1,1,1,1)
-#  four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+#  four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 #  #rate classes A:E
 #  turnover <- c(1,2,3,4,5)
 #  eps <- c(1,1,1,1,1)
-#  five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+#  five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  turnover <- c(1,2)
@@ -48,7 +48,7 @@ axis(1, at = seq(1, 5, by = 1), las =1, lwd=1, labels=c("One Rate", "Two Rate", 
 
 ## ---- eval=TRUE----------------------------------------------------------
 # two.rate.recon <- MarginReconMiSSE(phy=phy, f=1,  hidden.states=2, 
-                #pars=two.rate$solution, n.cores=3, aic=two.rate$AIC)
+                #pars=two.rate$solution, n.cores=3, AIC=two.rate$AIC)
 load("misse.vignette.Rsave") # Line above shows the command to create this result.
 class(two.rate.recon)
 two.rate.recon
@@ -110,7 +110,7 @@ three.rate.support$ci[,"q0"]
 #      misse_recon <- MarginReconMiSSE(phy = model.set[[model_index]]$phy, f = 1,
 #                                      hidden.states = nturnover,
 #                                      pars = model.set[[model_index]]$solution,
-#                                      aic = model.set[[model_index]]$AIC)
+#                                      AIC = model.set[[model_index]]$AIC)
 #      model.recons[[model_index]] <- misse_recon
 #  }
 

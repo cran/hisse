@@ -29,14 +29,14 @@ As with `hisse`, rather than optimizing $\lambda_i$ and $\mu_i$ separately, `MiS
 ```{r, eval=FALSE}
 turnover <- c(1)
 eps <- c(1)
-one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 ```
 
 Pretty simple. Now to fit a model that contains two rate classes, we will simply expand out the turnover vector:
 ```{r, eval=FALSE}
 turnover <- c(1,2)
 eps <- c(1,1)
-two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 ```
 
 Overall, `MiSSE` allows up to 26 possible hidden states in diversification (denoted by A-Z), and in this example since we fit two rate classes, we have two hidden states, A and B, impacting turnover rates. Here is the rest of the model set applied to the whale data set:
@@ -44,15 +44,15 @@ Overall, `MiSSE` allows up to 26 possible hidden states in diversification (deno
 #rate classes A:C
 turnover <- c(1,2,3)
 eps <- c(1,1,1)
-three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+three.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 #rate classes A:D
 turnover <- c(1,2,3,4)
 eps <- c(1,1,1,1)
-four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+four.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 #rate classes A:E
 turnover <- c(1,2,3,4,5)
 eps <- c(1,1,1,1,1)
-five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, sann=TRUE, sann.its=5000)
+five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 ```
 
 We can also let $\epsilon_i$ vary across the tree:
@@ -89,7 +89,7 @@ axis(1, at = seq(1, 5, by = 1), las =1, lwd=1, labels=c("One Rate", "Two Rate", 
 Like with all other functions, we provide plotting functionality with `plot.misse.states()` for hidden state reconstructions of `class misse.states` output by our `MarginReconMiSSE()` function. And, as with other functions, a single `misse.states` object can be supplied and the plotting function will provide a heat map of the diversification rate parameter of choice, or a list of `misse.states` objects can be supplied and the function will "model-average" the results. For plotting rates, users can choose among turnover, net diversification ("net.div"), speciation, extinction, or extinction fraction ("extinction.fraction"). Below is an example of how to run the reconstruction function to obtain `misse.states` output from our two rate model for cetaceans. But, again, for simplicity, I have a file that contains the reconstructions and we can check that everything has loaded correctly and is of the proper `misse.states` class:
 ```{r, eval=TRUE}
 # two.rate.recon <- MarginReconMiSSE(phy=phy, f=1,  hidden.states=2, 
-                #pars=two.rate$solution, n.cores=3, aic=two.rate$AIC)
+                #pars=two.rate$solution, n.cores=3, AIC=two.rate$AIC)
 load("misse.vignette.Rsave") # Line above shows the command to create this result.
 class(two.rate.recon)
 two.rate.recon
@@ -193,7 +193,7 @@ for (model_index in 1:length(model.set)) {
     misse_recon <- MarginReconMiSSE(phy = model.set[[model_index]]$phy, f = 1, 
                                     hidden.states = nturnover, 
                                     pars = model.set[[model_index]]$solution, 
-                                    aic = model.set[[model_index]]$AIC)
+                                    AIC = model.set[[model_index]]$AIC)
     model.recons[[model_index]] <- misse_recon
 }
 ```

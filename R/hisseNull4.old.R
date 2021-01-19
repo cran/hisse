@@ -7,10 +7,6 @@
 
 hisse.null4.old <- function(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2), eps.anc=rep(c(1,2,3,4),2), trans.type = "equal", condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, output.type="turnover", sann=TRUE, sann.its=1000, bounded.search=TRUE, max.tol=.Machine$double.eps^.50, starting.vals=NULL, turnover.upper=10000, eps.upper=3, trans.upper=100, ode.eps=0){
 
-    if(sann == FALSE & is.null(starting.vals)){
-        warning("You have chosen to rely on the internal starting points that generally work but does not guarantee finding the MLE.")
-    }
-
 	#Some basic formatting of parameters:
 	phy$node.label <- NULL
 	sub.mat1 <- sub.mat2 <- TransMatMaker.old(hidden.states=TRUE)
@@ -123,6 +119,7 @@ hisse.null4.old <- function(phy, data, f=c(1,1), turnover.anc=rep(c(1,2,3,4),2),
 		cat("Finished. Beginning simulated annealing...", "\n")
 		out.sann = GenSA(ip, fn=DevOptimizeNull, lower=lower, upper=upper, control=list(max.call=sann.its), pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np, ode.eps=ode.eps)
 		cat("Finished. Refining using subplex routine...", "\n")
+        opts <- list("algorithm" = "NLOPT_LN_SBPLX", "maxeval" = 100000, "ftol_rel" = max.tol)
         out = nloptr(x0=out.sann$par, eval_f=DevOptimizeNull, ub=upper, lb=lower, opts=opts, pars=pars, phy=phy, data=data.new[,1], f=f, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np, ode.eps=ode.eps)
         solution <- numeric(length(pars))
         solution[] <- c(exp(out$solution), 0)[pars]
@@ -293,6 +290,7 @@ DownPassNull <- function(phy, cache, bad.likelihood=-10000000000, condition.on.s
 		obj = NULL
 		obj$compD.root = compD[root.node,]
 		obj$compE = compE
+        obj$root.p = root.p
 		return(obj)
 	}else{
 		return(loglik)
