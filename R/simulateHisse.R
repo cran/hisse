@@ -6,7 +6,7 @@
 ######################################################################################################################################
 
 
-SimulateHisse <- function(turnover.rates, eps.values, transition.rates, max.taxa=Inf, max.t=Inf, max.wall.time=Inf, x0, nstart=1, checkpoint.file=NULL, checkpoint.frequency=100, checkpoint.start.object=NULL, override.safeties=FALSE) {
+SimulateHisse <- function(turnover.rates, eps.values, transition.rates, max.taxa=Inf, max.t=Inf, max.wall.time=Inf, x0, nstart=1, checkpoint.file=NULL, checkpoint.frequency=100, checkpoint.start.object=NULL, override.safeties=FALSE, mass.extinction.heights=c(), mass.extinction.magnitudes=c()) {
     id <- living <- state <- NULL
     if(!is.finite(max.taxa) & !is.finite(max.t) & !is.finite(max.wall.time)) {
 		if(!override.safeties) {
@@ -14,6 +14,10 @@ SimulateHisse <- function(turnover.rates, eps.values, transition.rates, max.taxa
 		} else {
 			warning("With current settings, hisse will grow a tree to infinite size and height until the death of the universe. Or, until all the taxa in the simulation go extinct. Normally the program would throw an error, but you claim to know what you're doing (override.safeties==TRUE). We would strongly advise you to have checkpointing running. You may also want to buy a carbon offset for the CPU-years you might burn through during this simulation.")		
 		}
+	}
+	if(length(mass.extinction.heights)>0) {
+		mass.extinction.magnitudes <- mass.extinction.magnitudes[order(mass.extinction.heights)]
+		mass.extinction.heights <- mass.extinction.heights[order(mass.extinction.heights)]
 	}
 	start <- Sys.time()
 	if(length(turnover.rates) != length(eps.values)) {
@@ -33,12 +37,14 @@ SimulateHisse <- function(turnover.rates, eps.values, transition.rates, max.taxa
 	diag(transition.rates) <- NA
 	birth.counts <- 0*birth.rates
 	death.counts <- 0*death.rates
+	mass.extinction.death.counts <- 0
 	transition.counts <- 0*transition.rates
 
 	if(!is.null(checkpoint.start.object)) {
 		results <- checkpoint.start.object$results
 		birth.counts <- checkpoint.start.object$birth.counts
 		death.counts <- checkpoint.start.object$death.counts
+		mass.extinction.death.counts  <- checkpoint.start.object$mass.extinction.death.counts 
 		transition.counts <- checkpoint.start.object$transition.counts
 	} else {
 		results <- data.table(anc=NA, id=1, state=factor(x0, state.levels), length=0, height=0, living=TRUE, descendants=FALSE)
@@ -65,48 +71,65 @@ SimulateHisse <- function(turnover.rates, eps.values, transition.rates, max.taxa
 			results[which(results$living),]$height <- results[which(results$living),]$height + time.dif
 			results[which(results$living),]$length <- results[which(results$living),]$length + time.dif
 		}
+		starting.time <- max(subset(results, living)$height)
+		ending.time <- starting.time + min(0, min.times, na.rm=TRUE)
+		mass.extinctions.in.range <- which(mass.extinction.heights<=ending.time)
 		if(keep.running) {
-			results[which(results$living),]$height <- results[which(results$living),]$height + min(min.times)
-			results[which(results$living),]$length <- results[which(results$living),]$length + min(min.times)
-
-			if(which.min(min.times)==1) { #birth
-				birth.counts[which.min(birth.wait.times)] <- birth.counts[which.min(birth.wait.times)]+1
-				potential.lucky.taxa <- subset(results, living & state==states[which.min(birth.wait.times)])$id
-				lucky.taxon <- potential.lucky.taxa[sample.int(length(potential.lucky.taxa), 1)]
-				results[which(id==lucky.taxon),]$living <- FALSE
-				results[which(id==lucky.taxon),]$descendants <- TRUE
-				results <- rbind(results, data.table(anc=lucky.taxon, id=max(results$id)+1, state=subset(results, id==lucky.taxon)$state, length=0, height=subset(results, id==lucky.taxon)$height, living=TRUE, descendants=FALSE))
-				results <- rbind(results, data.table(anc=lucky.taxon, id=max(results$id)+1, state=subset(results, id==lucky.taxon)$state, length=0, height=subset(results, id==lucky.taxon)$height, living=TRUE, descendants=FALSE))
-			}
-			if(which.min(min.times)==2) { #death
-				death.counts[which.min(death.wait.times)] <- death.counts[which.min(death.wait.times)]+1
-				potential.unlucky.taxa <- subset(results, living & state==states[which.min(death.wait.times)])$id
-				unlucky.taxon <- potential.unlucky.taxa[sample.int(length(potential.unlucky.taxa), 1)]
-				results[which(id==unlucky.taxon),]$living <- FALSE
-			}
-			if(which.min(min.times)==3) { #transition
-				from.to <- which(transition.wait.times == min(transition.wait.times, na.rm=TRUE), arr.ind=TRUE)
-				if (dim(from.to)[1] > 1) {
-					from.to <- from.to[sample.int(dim(from.to)[1], 1),]	
-				} else {
-					from.to <- from.to[1,]	
+			if(length(mass.extinctions.in.range)>0) { 
+				extinction.time <- mass.extinction.heights[mass.extinctions.in.range[1]]
+				results[which(results$living),]$height <- results[which(results$living),]$height + (extinction.time-starting.time)
+				results[which(results$living),]$length <- results[which(results$living),]$length + (extinction.time-starting.time)
+				death.probability <- mass.extinction.magnitudes[mass.extinctions.in.range[1]]
+				potential.very.unlucky.taxa <- subset(results, living)$id
+				actual.very.unlucky.taxa <- potential.very.unlucky.taxa[which(rbinom(length(potential.very.unlucky.taxa), 1, death.probability)==1)]
+				mass.extinction.death.counts <- mass.extinction.death.counts + length(actual.very.unlucky.taxa )
+				for(killed.index in seq_along(actual.very.unlucky.taxa)) {
+					results[which(id==actual.very.unlucky.taxa[killed.index]),]$living <- FALSE
 				}
-				transition.counts[from.to[1], from.to[2]] <- transition.counts[from.to[1], from.to[2]] +1
-				transition.wait.times[from.to[1], from.to[2]] <- transition.wait.times[from.to[1], from.to[2]] + 1
-				potential.changing.taxa <- subset(results, living & state==states[from.to[1]])$id
-				changed.taxon <- potential.changing.taxa[sample.int(length(potential.changing.taxa), 1)]
-				results[which(id==changed.taxon),]$state <- states[from.to[2]]
+				mass.extinction.heights <- mass.extinction.heights[-1]
+				mass.extinction.magnitudes <- mass.extinction.magnitudes[-1]
+			} else {
+				results[which(results$living),]$height <- results[which(results$living),]$height + min(min.times)
+				results[which(results$living),]$length <- results[which(results$living),]$length + min(min.times)
+				if(which.min(min.times)==1) { #birth
+					birth.counts[which.min(birth.wait.times)] <- birth.counts[which.min(birth.wait.times)]+1
+					potential.lucky.taxa <- subset(results, living & state==states[which.min(birth.wait.times)])$id
+					lucky.taxon <- potential.lucky.taxa[sample.int(length(potential.lucky.taxa), 1)]
+					results[which(id==lucky.taxon),]$living <- FALSE
+					results[which(id==lucky.taxon),]$descendants <- TRUE
+					results <- rbind(results, data.table(anc=lucky.taxon, id=max(results$id)+1, state=subset(results, id==lucky.taxon)$state, length=0, height=subset(results, id==lucky.taxon)$height, living=TRUE, descendants=FALSE))
+					results <- rbind(results, data.table(anc=lucky.taxon, id=max(results$id)+1, state=subset(results, id==lucky.taxon)$state, length=0, height=subset(results, id==lucky.taxon)$height, living=TRUE, descendants=FALSE))
+				}
+				if(which.min(min.times)==2) { #death
+					death.counts[which.min(death.wait.times)] <- death.counts[which.min(death.wait.times)]+1
+					potential.unlucky.taxa <- subset(results, living & state==states[which.min(death.wait.times)])$id
+					unlucky.taxon <- potential.unlucky.taxa[sample.int(length(potential.unlucky.taxa), 1)]
+					results[which(id==unlucky.taxon),]$living <- FALSE
+				}
+				if(which.min(min.times)==3) { #transition
+					from.to <- which(transition.wait.times == min(transition.wait.times, na.rm=TRUE), arr.ind=TRUE)
+					if (dim(from.to)[1] > 1) {
+						from.to <- from.to[sample.int(dim(from.to)[1], 1),]	
+					} else {
+						from.to <- from.to[1,]	
+					}
+					transition.counts[from.to[1], from.to[2]] <- transition.counts[from.to[1], from.to[2]] +1
+					transition.wait.times[from.to[1], from.to[2]] <- transition.wait.times[from.to[1], from.to[2]] + 1
+					potential.changing.taxa <- subset(results, living & state==states[from.to[1]])$id
+					changed.taxon <- potential.changing.taxa[sample.int(length(potential.changing.taxa), 1)]
+					results[which(id==changed.taxon),]$state <- states[from.to[2]]
+				}
 			}
 			keep.running <- CheckKeepRunning(results, max.taxa, max.t, max.wall.time, start)
 		}
 		if(!is.null(checkpoint.file)) {
 			if(rep.count %% checkpoint.frequency == 0) {
-				checkpoint.result <- list(results=as.data.frame(results), birth.counts=birth.counts, death.counts=death.counts, transition.counts=transition.counts, n.surviving = dim(subset(results, living))[1])
+				checkpoint.result <- list(results=as.data.frame(results), birth.counts=birth.counts, death.counts=death.counts, mass.extinction.death.counts=mass.extinction.death.counts, transition.counts=transition.counts, n.surviving = dim(subset(results, living))[1])
 				save(checkpoint.result, file=checkpoint.file)
 			} 	
 		}
 	}
-	return(list(results=as.data.frame(results), birth.counts=birth.counts, death.counts=death.counts, transition.counts=transition.counts, n.surviving = dim(subset(results, living))[1]))
+	return(list(results=as.data.frame(results), birth.counts=birth.counts, death.counts=death.counts, mass.extinction.death.counts=mass.extinction.death.counts, transition.counts=transition.counts, n.surviving = dim(subset(results, living))[1]))
 }
 
 Multiply <- function(x, y) { #I know, this is silly. It's like the joke about Wickham's addr package
@@ -163,13 +186,12 @@ SimToPhylo <- function(results, include.extinct=FALSE, drop.stem=TRUE) {
 		return(structure(list(edge = structure(c(2L,1L), .Dim = c(1L, 2L)), edge.length = c(results[which(results$id==final.tips),]$height), tip.label = c("t1"), Nnode = 0L), .Names = c("edge", "edge.length", "tip.label", "Nnode"), class = "phylo"))
 	}
 
-	
 	tips <- subset(results, !descendants)$id
 	if( length(which(is.na(results$anc))) > 1) { #we do not have a stem, but start with node at base. Stick a stem on, then prune it off
-		new.root.id <- min(results$anc, na.rm=TRUE)-1
+		new.root.id <- min(results$id, na.rm=TRUE)-1
 		results[which(is.na(results$anc)),]$anc <- new.root.id
 		results<- rbind(results[1,], results)
-		results[1,]$anc <-NA
+		results[1,]$anc <- NA
 		results[1,]$id <- new.root.id
 		results[1,]$length <- 0
 		results[1,]$height <- 0		
@@ -178,12 +200,14 @@ SimToPhylo <- function(results, include.extinct=FALSE, drop.stem=TRUE) {
 		drop.stem <- TRUE
 	}
 
-	results$phylo.tipward.id <- NA
+	results$phylo.tipward.id <- NA #this is to renumber according to how ape does it
 	results$phylo.tipward.id[which(!results$descendants)] <- sequence(length(tips))
 	non.tips <- subset(results, descendants)$id
 	results$phylo.tipward.id[which(results$descendants)] <- seq(from=(length(tips)+1), to=length(c(tips, non.tips)), by=1)
 	results$phylo.rootward.id <- NA
-	results$phylo.rootward.id <- sapply(results$anc, GetConversionOfAncestralNode, results=results)
+	results$phylo.rootward.id[which(!is.na(results$anc))] <- unlist(sapply(results$anc[which(!is.na(results$anc))], GetConversionOfAncestralNode, results=results))
+
+
 	root.edge <- NULL
 	if(drop.stem) {
 		 results <- results[-which(is.na(results$anc)),]	
@@ -191,7 +215,7 @@ SimToPhylo <- function(results, include.extinct=FALSE, drop.stem=TRUE) {
 		 root.edge <- results$length[which(is.na(results$anc))][1]
 		 results <- results[-which(is.na(results$anc)),]	
 	 }
-	edge <-unname(cbind(as.numeric(results$phylo.rootward.id), as.numeric(results$phylo.tipward.id)))
+	edge <- unname(cbind(as.numeric(as.vector(results$phylo.rootward.id)), as.numeric(as.vector(results$phylo.tipward.id))))
 	edge <- edge[order(edge[,2], decreasing=FALSE),]
 	edge.length <- as.numeric(results$length[order(as.numeric(results$phylo.tipward.id), decreasing=FALSE)])
 	Nnode <- length(non.tips)

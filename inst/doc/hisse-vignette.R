@@ -108,7 +108,7 @@ trans.rates.nodual.threerates
 knitr::opts_chunk$set(fig.width=7, fig.height=5)
 
 ## ---- eval=TRUE----------------------------------------------------------
-# pp.recon <- MarginRecon(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
+# pp.recon <- MarginRecon.old(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
 #                         , hidden.states = pp$hidden.states, AIC = pp$AIC)
 load("testrecon1.Rsave") # Line above shows the command to create this result.
 class(pp.recon)
@@ -125,7 +125,7 @@ plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE,
 pp.recon$AIC
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  pp.recon = MarginRecon(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution,
+#  pp.recon = MarginRecon.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution,
 #                         AIC=pp$AIC, n.cores=2)
 
 ## ---- eval=TRUE----------------------------------------------------------

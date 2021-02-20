@@ -18,7 +18,7 @@ GetModelWeight <- function(...){
         ## Strange! Break.
         stop( "list of models need to be only HiSSE, or GeoHiSSE, or MiSSE fits." )
     }
-    if( !all(mod.class.geohisse) & !all(mod.class.hisse & !all(mod.class.misse)) ){
+    if( !all(mod.class.geohisse) & !all(mod.class.hisse) & !all(mod.class.misse) ){
         ## Strange! Break.
         stop( "list of models need to be only HiSSE, or GeoHiSSE, or MiSSE fits." )
     }

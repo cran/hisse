@@ -451,9 +451,9 @@ trans.rates.nodual.threerates
 
 <p>##Plotting hisse reconstructions</p>
 
-<p>Our HiSSE package provides plotting functionality in <code>plot.hisse.states()</code> for character state reconstructions of <code>class hisse.states</code> output by our <code>MarginRecon()</code> function. Specifically, the function provides an overlay of the state reconstructions on the rate estimates. There are a couple of options for how these reconstructions to be plotted. First, a single <code>hisse.states</code> object can be supplied and it will provide a heat map of the diversification rate parameter of choice. Users can choose among turnover, net diversification (&ldquo;net.div&rdquo;), speciation, extinction, or extinction fraction (&ldquo;extinction.fraction&rdquo;). I&#39;ve provided example <code>hisse.states</code> output from the example data set simulated above. This particular model assumed two diversification rate parameters &ndash; i.e., turnover.anc=c(1,1,1,2), and eps.anc=c(1,1,1,1). Let&#39;s load this file and check that everything has loaded correctly and is of the proper <code>hisse.states</code> class:</p>
+<p>Our HiSSE package provides plotting functionality in <code>plot.hisse.states()</code> for character state reconstructions of <code>class hisse.states</code> output by our <code>MarginRecon.old()</code> function. Specifically, the function provides an overlay of the state reconstructions on the rate estimates. There are a couple of options for how these reconstructions to be plotted. First, a single <code>hisse.states</code> object can be supplied and it will provide a heat map of the diversification rate parameter of choice. Users can choose among turnover, net diversification (&ldquo;net.div&rdquo;), speciation, extinction, or extinction fraction (&ldquo;extinction.fraction&rdquo;). I&#39;ve provided example <code>hisse.states</code> output from the example data set simulated above. This particular model assumed two diversification rate parameters &ndash; i.e., turnover.anc=c(1,1,1,2), and eps.anc=c(1,1,1,1). Let&#39;s load this file and check that everything has loaded correctly and is of the proper <code>hisse.states</code> class:</p>
 
-<pre><code class="r"># pp.recon &lt;- MarginRecon(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
+<pre><code class="r"># pp.recon &lt;- MarginRecon.old(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
 #                         , hidden.states = pp$hidden.states, AIC = pp$AIC)
 load(&quot;testrecon1.Rsave&quot;) # Line above shows the command to create this result.
 class(pp.recon)
@@ -469,9 +469,9 @@ class(pp.recon)
 ## Phylogenetic tree with 50 tips and 49 internal nodes.
 ## 
 ## Tip labels:
-##  sp15, sp57, sp58, sp49, sp50, sp42, ...
+##   sp15, sp57, sp58, sp49, sp50, sp42, ...
 ## Node labels:
-##  1, 3, 1, 1, 1, 1, ...
+##   1, 3, 1, 1, 1, 1, ...
 ## 
 ## Rooted; includes branch lengths.
 </code></pre>
@@ -537,9 +537,9 @@ class(pp.recon)
 <pre><code>## [1] 364.8615
 </code></pre>
 
-<p>If this returns a NULL, then something has gone wrong and you should check how you performed the reconstructions. The AIC for the model can be supplied as an argument in the <code>MarginRecon()</code> function (using the <code>pp</code> object we defined above):</p>
+<p>If this returns a NULL, then something has gone wrong and you should check how you performed the reconstructions. The AIC for the model can be supplied as an argument in the <code>MarginRecon.old()</code> function (using the <code>pp</code> object we defined above):</p>
 
-<pre><code class="r">pp.recon = MarginRecon(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution, 
+<pre><code class="r">pp.recon = MarginRecon.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution, 
                        AIC=pp$AIC, n.cores=2)
 </code></pre>
 
