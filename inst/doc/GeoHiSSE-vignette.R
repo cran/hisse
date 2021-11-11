@@ -1,17 +1,17 @@
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  library( devtools )
 #  install_github(repo = "thej022214/hisse", ref = "master")
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 suppressWarnings(library(hisse))
 suppressWarnings(library(diversitree))
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 ## Generate a list with the parameters of the model:
 pars <- SimulateGeoHiSSE(hidden.traits = 1, return.GeoHiSSE_pars = TRUE)
 pars
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 pars$model.pars[,1] <- c(0.1, 0.1, 0.1, 0.03, 0.03, 0.05, 0.05)
 pars$model.pars[,2] <- c(0.2, 0.2, 0.2, 0.03, 0.03, 0.05, 0.05)
 pars$q.01[1,2] <- pars$q.01[2,1] <- 0.005
@@ -19,14 +19,14 @@ pars$q.0[1,2] <- pars$q.0[2,1] <- 0.005
 pars$q.1[1,2] <- pars$q.1[2,1] <- 0.005
 pars
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 set.seed(42)
 sim.geohisse <- SimulateGeoHiSSE(pars=pars, hidden.traits = 1, x0 = "01A", max.taxa = 500)
 phy <- sim.geohisse$phy
 phy$node.labels <- NULL
 sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohisse$data[,2]))
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  ## Model 1 - Dispersal parameters vary only, no range-dependent diversification.
 #  turnover <- c(1,1,0)
 #  eps <- c(1,1)
@@ -37,7 +37,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #                    hidden.states=FALSE, trans.rate=trans.rate.mod,
 #                    turnover.upper=100, trans.upper=10)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  ## Model 2. Canonical GeoSSE model, range effect on diversification
 #  turnover <- c(1,2,3)
 #  eps <- c(1,1)
@@ -48,7 +48,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #                    hidden.states=FALSE, trans.rate=trans.rate.mod,
 #                    turnover.upper=100, trans.upper=10)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  ## Model 3. GeoHiSSE model with 1 hidden trait, no range-dependent diversification.
 #  ## Note below how parameters vary among hidden classes but are the same within each
 #  ##      hidden class.
@@ -61,7 +61,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #                    hidden.states=TRUE, trans.rate=trans.rate.mod,
 #                    turnover.upper=100, trans.upper=10)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  ## Model 4. GeoHiSSE model with 1 hidden trait, range-dependent diversification.
 #  turnover <- c(1,2,3,4,5,6)
 #  eps <- c(1,1,1,1)
@@ -72,7 +72,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #                    hidden.states=TRUE, trans.rate=trans.rate.mod,
 #                    turnover.upper=100, trans.upper=10)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  ## Model 5. MuSSE-like model with no hidden trait, no cladogenetic effects.
 #  turnover <- c(1,2,0)
 #  eps <- c(1,1)
@@ -86,7 +86,7 @@ sim.dat <- data.frame(taxon=sim.geohisse$data[,1], ranges=as.numeric(sim.geohiss
 #                    turnover.upper=100, trans.upper=10, sann=FALSE,
 #                    assume.cladogenetic = FALSE)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 load( "geohisse_new_vignette.Rsave" )
 GetAICWeights(list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4), criterion="AIC")
 ## As the number of models in the set grows, naming each model in the set can become hard.
@@ -94,7 +94,7 @@ GetAICWeights(list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4), 
 list.geohisse <- list(model1 = mod1, model2 = mod2, model3 = mod3, model4 = mod4)
 GetAICWeights(list.geohisse, criterion="AIC")
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  recon.mod1 <- MarginReconGeoSSE(phy = mod1$phy, data = mod1$data, f = mod1$f,
 #                                   pars = mod1$solution, hidden.states = 1,
 #                                   root.type = mod1$root.type, root.p = mod1$root.p,
@@ -112,18 +112,18 @@ GetAICWeights(list.geohisse, criterion="AIC")
 #                                   root.type = mod4$root.type, root.p = mod4$root.p,
 #                                   AIC = mod4$AIC, n.cores = 4)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 ## Load previous results:
 load( "geohisse_recons_new_vignette.Rsave" )
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 recon.models <- list(recon.mod1, recon.mod2, recon.mod3, recon.mod4)
 model.ave.rates <- GetModelAveRates(x = recon.models, type = "tips")
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 head( model.ave.rates )
 
-## ----fig1, fig.height = 15, fig.width = 5--------------------------------
+## ----fig1, fig.height = 15, fig.width = 5-------------------------------------
 plot.geohisse.states(x = recon.models, rate.param = "net.div", type = "fan",
                      show.tip.label = FALSE, legend = FALSE)
 

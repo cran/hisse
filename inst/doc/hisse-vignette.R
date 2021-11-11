@@ -1,7 +1,7 @@
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 suppressWarnings(library(hisse))
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 suppressWarnings(library(diversitree))
 set.seed(4)
 # Essentially we are setting up a model that models the evolution of two binary characters
@@ -16,76 +16,76 @@ sim.dat[sim.dat[,2]==4,2] = 2
 # This next step simply forces the character to be binary:
 sim.dat[,2] = sim.dat[,2] - 1
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 head(sim.dat)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 turnover.anc = c(1,1,0,0)
 eps.anc = c(1,1,0,0)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 turnover.anc = c(1,2,0,0)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 turnover.anc = c(1,2,3,4)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 eps.anc = c(0,0,0,0)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates = TransMatMaker.old(hidden.states=TRUE)
 trans.rates
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates.nodual = ParDrop(trans.rates, c(3,5,8,10))
 trans.rates.nodual
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates.nodual.equal16 = ParEqual(trans.rates.nodual, c(1,6))
 trans.rates.nodual.equal16
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates.nodual.allequal = ParEqual(trans.rates.nodual, c(1,2,1,3,1,4,1,5,1,6,1,7,1,8))
 trans.rates.nodual.allequal
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates.nodual.allequal = trans.rates.nodual
 trans.rates.nodual.allequal[!is.na(trans.rates.nodual.allequal) & 
                               !trans.rates.nodual.allequal == 0] = 1
 trans.rates.nodual.allequal
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates.bisse = TransMatMaker.old(hidden.states=FALSE)
 trans.rates.bisse
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
 #             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=TRUE)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 turnover.anc = c(1,2,0,3)
 eps.anc = c(1,2,0,3)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates <- TransMatMaker.old(hidden.states=TRUE)
 trans.rates.nodual.no0B <- ParDrop(trans.rates, c(2,3,5,7,8,9,10,12))
 trans.rates.nodual.no0B
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
 #             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, output.type="net.div", sann=FALSE)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 turnover.anc = c(1,1,2,2)
 eps.anc = c(1,1,2,2)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 trans.rates = TransMatMaker.old(hidden.states=TRUE)
 trans.rates.nodual = ParDrop(trans.rates, c(3,5,8,10))
 trans.rates.nodual.allequal = ParEqual(trans.rates.nodual, c(1,2,1,3,1,4,1,5,1,6,1,7,1,8))
 trans.rates.nodual.allequal
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 # Now we want three specific rates:
 trans.rates.nodual.threerates <- trans.rates.nodual
 # Set all transitions from 0->1 to be governed by a single rate:
@@ -100,35 +100,35 @@ to.change <- cbind(c(1,3,2,4), c(3,1,4,2))
 trans.rates.nodual.threerates[to.change] = 3
 trans.rates.nodual.threerates
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  pp = hisse.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, turnover.anc=turnover.anc,
 #             eps.anc=eps.anc, trans.rate=trans.rates.nodual.allequal, sann=FALSE)
 
-## ----global_options, include=FALSE---------------------------------------
+## ----global_options, include=FALSE--------------------------------------------
 knitr::opts_chunk$set(fig.width=7, fig.height=5)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 # pp.recon <- MarginRecon.old(phy=phy, data=sim.dat, f = pp$f, pars = pp$solution
 #                         , hidden.states = pp$hidden.states, AIC = pp$AIC)
 load("testrecon1.Rsave") # Line above shows the command to create this result.
 class(pp.recon)
 pp.recon
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 plot.hisse.states(pp.recon, rate.param="net.div", show.tip.label=FALSE, 
                   rate.range=c(0,0.072))
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 pp.recon$AIC
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  pp.recon = MarginRecon.old(phy, sim.dat, f=c(1,1), hidden.states=TRUE, pars=pp$solution,
 #                         AIC=pp$AIC, n.cores=2)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 hisse.results.list = list()
 load("testrecon1.Rsave")
 hisse.results.list[[1]] = pp.recon
@@ -139,7 +139,7 @@ hisse.results.list[[3]] = pp.recon
 # Now supply the list the plotting function
 plot.hisse.states(hisse.results.list, rate.param="net.div", show.tip.label=FALSE, rate.range=c(0,0.072))
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  # First, suck in all the files with .Rsave line ending in your working directory:
 #  # files = system("ls -1 | grep .Rsave", intern=TRUE) # This will not run in a Windows system.
 #  files = dir( pattern = "*.Rsave" ) # This is system independent.

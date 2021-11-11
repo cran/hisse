@@ -5,9 +5,10 @@
 ######################################################################################################################################
 
 SupportRegionMiSSE <- function(misse.obj, n.points=1000, scale.int=0.1, desired.delta=2, min.number.points=10, verbose=TRUE){
-
-    phy <- misse.obj$phy
-
+    
+    #If no fossils should be fine, but necessary to call this tree if fossils are present:
+    phy <- misse.obj$phy.w.k
+    
     f <- misse.obj$f
     np <- max(misse.obj$index.par) - 1
     par <- numeric(np)
@@ -21,14 +22,17 @@ SupportRegionMiSSE <- function(misse.obj, n.points=1000, scale.int=0.1, desired.
     condition.on.survival=misse.obj$condition.on.survival
     root.type=misse.obj$root.type
     root.p=misse.obj$root.p
+    includes.fossils = misse.obj$includes.fossils
+    fix.type = misse.obj$fix.type
+    strat.intervals = misse.obj$strat.intervals
     
     lower <- exp(misse.obj$lower.bounds)
     upper <- exp(misse.obj$upper.bounds)
     
     #Bad Jeremy! Hard-coded column headers...
-    interval.names <- c("lnLik", "turnover0A","eps0A", "turnover0B","eps0B", "turnover0C","eps0C", "turnover0D","eps0D", "turnover0E","eps0E", "turnover0F","eps0F", "turnover0G","eps0G", "turnover0H","eps0H", "turnover0I","eps0I", "turnover0J","eps0J", "turnover0K","eps0K", "turnover0L","eps0L", "turnover0M","eps0M", "turnover0N","eps0N", "turnover0O","eps0O", "turnover0P","eps0P", "turnover0Q","eps0Q", "turnover0R","eps0R", "turnover0S","eps0S", "turnover0T","eps0T", "turnover0U","eps0U", "turnover0V","eps0V","turnover0W","eps0W","turnover0X","eps0X", "turnover0Y","eps0Y", "turnover0Z","eps0Z", "q0")
-
-    interval.results <- AdaptiveConfidenceIntervalSamplingMiSSE(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, index.par=misse.obj$index.par, f=f, hidden.states=hidden.states, fixed.eps=misse.obj$fixed.eps, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, scale.int=scale.int, min.number.points=min.number.points)
+    interval.names <- c("lnLik", "turnover0A","eps0A", "turnover0B","eps0B", "turnover0C","eps0C", "turnover0D","eps0D", "turnover0E","eps0E", "turnover0F","eps0F", "turnover0G","eps0G", "turnover0H","eps0H", "turnover0I","eps0I", "turnover0J","eps0J", "turnover0K","eps0K", "turnover0L","eps0L", "turnover0M","eps0M", "turnover0N","eps0N", "turnover0O","eps0O", "turnover0P","eps0P", "turnover0Q","eps0Q", "turnover0R","eps0R", "turnover0S","eps0S", "turnover0T","eps0T", "turnover0U","eps0U", "turnover0V","eps0V","turnover0W","eps0W","turnover0X","eps0X", "turnover0Y","eps0Y", "turnover0Z","eps0Z", "q0", "psi")
+    
+    interval.results <- AdaptiveConfidenceIntervalSamplingMiSSE(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, index.par=misse.obj$index.par, f=f, hidden.states=hidden.states, fixed.eps=misse.obj$fixed.eps, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, includes.fossils=includes.fossils, strat.intervals=strat.intervals, fix.type=fix.type, scale.int=scale.int, min.number.points=min.number.points)
     interval.results.final <- matrix(0, n.points+1, length(misse.obj$index.par))
     for(i in 1:(n.points+1)){
         par.rep <- unlist(interval.results[i,-1],use.names=FALSE)
@@ -36,7 +40,7 @@ SupportRegionMiSSE <- function(misse.obj, n.points=1000, scale.int=0.1, desired.
     }
     interval.results.final <- cbind(interval.results[,1], interval.results.final)
     interval.results.in <- interval.results.final[which(interval.results.final[,1] - min(interval.results.final[,1])<=desired.delta),]
-    if(class(interval.results.in)=="numeric"){
+    if(class(interval.results.in[1])=="numeric"){
         stop("Only the MLE is in the desired range. Try reducing scale.int.", call.=FALSE)
     }else{
         ci.interval = apply(interval.results.in, 2, quantile)
@@ -51,22 +55,46 @@ SupportRegionMiSSE <- function(misse.obj, n.points=1000, scale.int=0.1, desired.
 }
 
 
-
-
-AdaptiveConfidenceIntervalSamplingMiSSE <- function(par, lower, upper, desired.delta=2, n.points=5000, verbose=TRUE, phy, index.par, f, hidden.states, fixed.eps, condition.on.survival, root.type, root.p, scale.int, min.number.points=10) {
+AdaptiveConfidenceIntervalSamplingMiSSE <- function(par, lower, upper, desired.delta=2, n.points=5000, verbose=TRUE, phy, index.par, f, hidden.states, fixed.eps, condition.on.survival, root.type, root.p, includes.fossils, strat.intervals, fix.type, scale.int, min.number.points=10) {
     
     # Some new prerequisites #
-    gen <- FindGenerations(phy)
-    dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states)
+    if(includes.fossils == TRUE){
+        if(!is.null(strat.intervals)){
+            strat.cache <- GetStratInfo(strat.intervals=strat.intervals)
+            gen <- FindGenerations(phy)
+            dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=TRUE, intervening.intervals=strat.cache$intervening.intervals)
+            #These are all inputs for generating starting values:
+            edge_details <- GetEdgeDetails(phy, includes.intervals=TRUE, intervening.intervals=strat.cache$intervening.intervals)
+            fossil.taxa <- edge_details$tipward_node[which(edge_details$type == "extinct_tip" | edge_details$type == "k_extinct_interval")]
+        }else{
+            gen <- FindGenerations(phy)
+            dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=FALSE, intervening.intervals=NULL)
+            #These are all inputs for generating starting values:
+            edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
+            fossil.taxa <- edge_details$tipward_node[which(edge_details$type == "extinct_tip")]
+        }
+    }else{
+        fossil.taxa <- NULL
+        gen <- FindGenerations(phy)
+        dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states)
+    }
     ##########################
-
+    
     #Wrangle the data so that we can make use of DownPass easily:
-    actual.params = which(index.par < max(index.par))
+    actual.params <- which(index.par < max(index.par))
     model.vec <- numeric(length(index.par))
     model.vec[] <- c(par,0)[index.par]
     cache <- ParametersToPassMiSSE(model.vec=model.vec, hidden.states=hidden.states, fixed.eps=fixed.eps, nb.tip=Ntip(phy), nb.node=Nnode(phy), bad.likelihood=exp(-300), ode.eps=0)
-    phy$node.label <- NULL
-    starting <- -DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p)
+    
+    if(includes.fossils == TRUE){
+        if(!is.null(strat.intervals)){
+            starting <- -(DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=fix.type[,1], state=NULL, fossil.taxa=fossil.taxa, fix.type=fix.type[,2]) + (strat.cache$k*log(cache$psi)) + (cache$psi*strat.cache$l_s))
+        }else{
+            starting <- -DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=fix.type[,1], state=NULL, fossil.taxa=fossil.taxa, fix.type=fix.type[,2])
+        }
+    }else{
+        starting <- -DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=NULL, fossil.taxa=fossil.taxa, fix.type=NULL)
+    }
     #Generate the multipliers for feeling the boundaries:
     min.multipliers <- rep(1, length(par))
     max.multipliers <- rep(1, length(par))
@@ -81,8 +109,15 @@ AdaptiveConfidenceIntervalSamplingMiSSE <- function(par, lower, upper, desired.d
         model.vec <- numeric(length(index.par))
         model.vec[] <- c(sim.points,0)[index.par]
         cache <- ParametersToPassMiSSE(model.vec=model.vec, hidden.states=hidden.states, fixed.eps=fixed.eps, nb.tip=Ntip(phy), nb.node=Nnode(phy), bad.likelihood=exp(-300), ode.eps=0)
-        phy$node.label <- NULL
-        second <- -DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p)
+        if(includes.fossils == TRUE){
+            if(!is.null(strat.intervals)){
+                second <- -(DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=fix.type[,1], state=NULL, fossil.taxa=fossil.taxa, fix.type=fix.type[,2]) + (strat.cache$k*log(cache$psi)) + (cache$psi*strat.cache$l_s))
+            }else{
+                second <- -DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=fix.type[,1], state=NULL, fossil.taxa=fossil.taxa, fix.type=fix.type[,2])
+            }
+        }else{
+            second <- -DownPassMisse(dat.tab=dat.tab, gen=gen, cache=cache, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, node=NULL, fossil.taxa=fossil.taxa, fix.type=NULL)
+        }
         results[i+1,] <- c(second, sim.points)
         if(i%%20==0) {
             for (j in sequence(length(par))) {
@@ -113,8 +148,8 @@ AdaptiveConfidenceIntervalSamplingMiSSE <- function(par, lower, upper, desired.d
     while(length(which((results[,1]-min(results[,1], na.rm=TRUE))<desired.delta))<min.number.points) {
         warning("Did not generate enough points in the region; restarting to create additional points")
         print(paste("Now doing an additional", 2+round(n.points/4), "points to the", dim(results)[1], "ones already done because not enough points in the good enough region were sampled"))
-		scale.int <- scale.int*0.5
-        new.results <- AdaptiveConfidenceIntervalSamplingMiSSE(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, index.par=index.par, f=f, hidden.states=hidden.states, fixed.eps=fixed.eps, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, scale.int=scale.int, min.number.points=0)
+        scale.int <- scale.int*0.5
+        new.results <- AdaptiveConfidenceIntervalSamplingMiSSE(par, lower=lower, upper=upper, desired.delta = desired.delta, n.points=n.points, verbose=verbose, phy=phy, index.par=index.par, f=f, hidden.states=hidden.states, fixed.eps=fixed.eps, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, includes.fossils=includes.fossils, fix.type=fix.type, scale.int=scale.int, min.number.points=0)
         results <- rbind(results, new.results[-1,])
     }
     return(results)

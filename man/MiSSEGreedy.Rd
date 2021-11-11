@@ -4,15 +4,17 @@
 \description{Executes a set of MiSSE models (Missing State Speciation
  and Extinction) on a phylogeny, varying the number of parameters for turnover and extinction fraction and stopping when models stop being very good.}
 \usage{
-MiSSEGreedy(phy, f=1, possible.combos = generateMiSSEGreedyCombinations(),
-stop.deltaAICc=10, save.file=NULL, n.cores=NULL, chunk.size=NULL,
-condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, sann=TRUE,
-sann.its=10000, bounded.search=TRUE, max.tol=.Machine$double.eps^.50, starting.vals=NULL,
-turnover.upper=10000, eps.upper=3, trans.upper=100, restart.obj=NULL, ode.eps=0)
+MiSSEGreedy(phy, f=1, possible.combos = 
+generateMiSSEGreedyCombinations(shuffle.start=TRUE), stop.deltaAICc=10, save.file=NULL, 
+n.cores=NULL, chunk.size=10, check.fits=FALSE, remove.bad=FALSE, n.tries=2, 
+condition.on.survival=TRUE, root.type="madfitz", root.p=NULL, includes.fossils=FALSE, 
+k.samples=NULL, strat.intervals=NULL, sann=TRUE, sann.its=5000, sann.temp=5230, 
+sann.seed=-100377,bounded.search=TRUE, max.tol=.Machine$double.eps^.50, 
+starting.vals=NULL, turnover.upper=10000, eps.upper=3, trans.upper=100, restart.obj=NULL, 
+ode.eps=0)
 }
 \arguments{
-\item{phy}{a phylogenetic tree, in \code{ape} \dQuote{phylo} format and
-  with internal nodes labeled denoting the ancestral selective regimes.}
+\item{phy}{a phylogenetic tree, in \code{ape} \dQuote{phylo} format. If \code{includes.fossils=TRUE} then the input phy object must include extinct tips.}
 \item{f}{the estimated proportion of extant species included in the phylogeny. A value of
   0.50 means that 50 percent of species are contained in the. By default all species are assumed
   to be sampled.}
@@ -21,18 +23,25 @@ turnover.upper=10000, eps.upper=3, trans.upper=100, restart.obj=NULL, ode.eps=0)
 \item{save.file}{file to use to save results while the code is running}
 \item{n.cores}{how many cores to run this on in parallel}
 \item{chunk.size}{how many models to run before checking to make sure there are no improvements. See 'Details'.}
+\item{check.fits}{a logical indicating whether a secondary check to ensure optimization performed well. See \code{FindAndRerun}}
+\item{remove.bad}{a logical indicating whether bad models identified as poorly fit should be removed. Only invoked when \code{FindAndRerun=TRUE}.}
+\item{n.tries}{maximum number of retries for a given model when \code{check.fits=TRUE}.}
 \item{condition.on.survival}{a logical indicating whether the likelihood
   should be conditioned on the survival of two lineages and the
   speciation event subtending them (Nee et al. 1994). The default is \code{TRUE}.}
 \item{root.type}{indicates whether root summarization follow the procedure described by FitzJohn et al. 2009, \dQuote{madfitz} or Herrera-Alsina et al. 2018, \dQuote{herr_als}.}
-\item{root.p}{a vector indicating fixed root state probabilities. The
-  default is \code{NULL}.}
+\item{root.p}{a vector indicating fixed root state probabilities. The default is \code{NULL}.}
+\item{includes.fossils}{a logical indicating whether the tree contains fossil taxa. The default is \code{FALSE}.}
+\item{k.samples}{a table of extinct individuals with sampled descendants. See vignette for how the table must be formatted.}
+\item{strat.intervals}{a table of extinct individuals with sampled descendants. See vignette for how the table must be formatted.}
 \item{sann}{a logical indicating whether a two-step optimization
   procedure is to be used. The first includes a simulate annealing
   approach, with the second involving a refinement using
   \code{subplex}. The default is \code{TRUE}.}
 \item{sann.its}{a numeric indicating the number of times the simulated
   annealing algorithm should call the objective function.}
+\item{sann.temp}{the starting temperature for the simulated annealing. Higher temperatures results in the chain sampling a much wider space initially. The default of 5320 is based on the default of the GenSA package. For larger trees setting this value higher in conjunction with more sann.its can drastically improve performance.}
+\item{sann.seed}{the seed number for the simulated annealing algorithm. This value must be negative and an odd number.}
 \item{bounded.search}{a logical indicating whether or not bounds should
   be enforced during optimization. The default is \code{TRUE}.}
 \item{max.tol}{supplies the relative optimization tolerance to
@@ -60,36 +69,11 @@ See the \code{MiSSE} function for description of the method overall. It requires
 
 You can change how quickly the function stops trying new models with stop.deltaAICc. Once it runs a chunk of models where the best gets a model that is at least stop.deltaAICc worse than the *current* best model, it stops running new models. Since this is based on current best AICc, and we start with simple models, there's an asymmetry: a terrible model with no rate variation is always included, but a slightly less terrible model with 26 turnover rates might never be run.
 
-This works MUCH faster when run in parallel. To do so, set n.cores to the number of available cores on your machine (for example, for a modern Mac laptop, this would be 4). An easy way to do this automatically is to use n.cores=parallel::detectCores(). The default is one core; if running this function on a cluster, a default of parallel::detectCores() might take over an entire compute node when you're supposed to be using just one core, and get you in trouble. Since we run many models, the most natural approach is to run one model per core, see if at least one of the models are still ok, then send out the next models out to all the cores. Setting n.cores to the number of parallel jobs you want, and leaving chunk.size set to NULL, will do this. However, this is slightly inefficient -- the odds are that some cores will finish earlier than others, and will be waiting until all finish. So a different approach is to set a chunk.size greater than n.cores -- it will still use no more than n.cores at a time, but once one model in the set finishes it will send off the next until all models in the chunk are run. This keeps the computer even busier, but then it won't stop to check to make sure the models are still feasible as often, and it only saves intermediate results after each chunk of models finishes. Our recommendation is to use n.cores=parallel::detectCores() if you're on a machine where you can use all the cores and leave chunk.size unspecified (so it will also default to n.cores), but it's up to you.
+This works MUCH faster when run in parallel. To do so, set n.cores to the number of available cores on your machine (for example, for a modern Mac laptop, this would be 4). An easy way to do this automatically is to use n.cores=parallel::detectCores(). The default is one core; if running this function on a cluster, a default of parallel::detectCores() might take over an entire compute node when you're supposed to be using just one core, and get you in trouble. Since we run many models, the most natural approach is to run one model per core, see if at least one of the models are still ok, then send out the next models out to all the cores. Setting n.cores to the number of parallel jobs you want, and setting chunk.size to NULL, will do this. However, this is slightly inefficient -- the odds are that some cores will finish earlier than others, and will be waiting until all finish. So a different approach is to set a chunk.size greater than n.cores -- it will still use no more than n.cores at a time, but once one model in the set finishes it will send off the next until all models in the chunk are run. This keeps the computer even busier, but then it won't stop to check to make sure the models are still feasible as often, and it only saves intermediate results after each chunk of models finishes. Our recommendation is to use n.cores=parallel::detectCores() if you're on a machine where you can use all the cores. By default, we set chunk.size=10 so it looks at ten models before deciding none of them have a good enough AICc to keep looking at all models. If chunk.size is smaller, say, 2, it will look at only two models and if neither is within stop.deltaAICc of the best model, it will stop looking at the next chunk of models.
 
 After every chunk of models are done, this function will display the status: what models have been run, what the likelihoods and AICs are, etc. It will also predict how long future runs will check (based on a linear regression between the number of free parameters and log(minutes to run)). These are just estimates based on the runs so far, but it's a stochastic search and can take more or less time.
 
 Saving output while this goes is highly recommended -- you can see how things are going and salvage something if a run fails (then, start again, deleting the models that worked from possible.combos and USING A DIFFERENT FILE TO SAVE TO SO YOU DON'T OVERWRITE THE OLD ONE. You can so this by giving a file name (including path, if you want) as the save.file argument. This will save the list of finished models (misse.list) and the possible.combos data.frame with additional information.
-}
-
-
-
-\examples{
-\donttest{
-  library(ape)
-  phy <- rcoal(50)
-  potential.combos <- generateMiSSEGreedyCombinations(max.param=4, vary.both=TRUE)
-
-  #run on one core:
-  result <- MiSSEGreedy(phy, potential.combos, n.cores=1, f=1) 
-
-  #run on all available cores: (commented out because CRAN does not allow this in examples)
-  #result <- MiSSEGreedy(phy, potential.combos, n.cores=parallel::detectCores(), f=1)
-
-
-
-  AICc <- unlist(lapply(result, "[[", "AICc"))
-  deltaAICc <- AICc-min(AICc)
-  print(length(result))
-
-  # Yes, [[ is a function you can lapply, and the name of elements within each list
-  # object can be arguments. Life is awesome.
-}
 }
 \references{
 Beaulieu, J.M, and B.C. O'Meara. 2016. Detecting hidden diversification shifts in models

@@ -1,6 +1,6 @@
 \name{plot.misse.states}
 \alias{plot.misse.states}
-\title{Plotting function geohisse.states objects}
+\title{Plotting function misse.states objects}
 \description{A plotting function for visualizing changes in states and rates over a phylogeny}
 \usage{
 \method{plot}{misse.states}(x, rate.param = "net.div", type = "fan",

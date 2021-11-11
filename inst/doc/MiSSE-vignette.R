@@ -1,18 +1,18 @@
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 suppressWarnings(library(hisse))
 phy <- read.tree("whales_Steemanetal2009.tre")
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  turnover <- c(1)
 #  eps <- c(1)
 #  one.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  turnover <- c(1,2)
 #  eps <- c(1,1)
 #  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  #rate classes A:C
 #  turnover <- c(1,2,3)
 #  eps <- c(1,1,1)
@@ -26,7 +26,7 @@ phy <- read.tree("whales_Steemanetal2009.tre")
 #  eps <- c(1,1,1,1,1)
 #  five.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  turnover <- c(1,2)
 #  eps <- c(1,2)
 #  two.rate.weps <- MiSSE(phy, f=1, turnover=turnover, eps=eps)
@@ -46,14 +46,14 @@ par(tck=.01)
 axis(2, at = seq(530, 560, by = 5), las =1, lwd=1, labels=TRUE, mgp=c(.75,.5,0))
 axis(1, at = seq(1, 5, by = 1), las =1, lwd=1, labels=c("One Rate", "Two Rate", "Three Rate", "Four Rate", "Five Rate"), mgp=c(.75,.5,0))
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 # two.rate.recon <- MarginReconMiSSE(phy=phy, f=1,  hidden.states=2, 
                 #pars=two.rate$solution, n.cores=3, AIC=two.rate$AIC)
 load("misse.vignette.Rsave") # Line above shows the command to create this result.
 class(two.rate.recon)
 two.rate.recon
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  plot.misse.states(two.rate.recon, rate.param="net.div", show.tip.label=TRUE, type="phylogram",
 #                    fsize=.25, legend="none")
 
@@ -61,7 +61,7 @@ two.rate.recon
 plot.misse.states(two.rate.recon, rate.param="net.div", show.tip.label=TRUE, type="phylogram",
                   fsize=.25, legend="none")
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 misse.results.list = list()
 misse.results.list[[1]] = one.rate.recon
 misse.results.list[[2]] = two.rate.recon
@@ -69,7 +69,7 @@ misse.results.list[[3]] = three.rate.recon
 misse.results.list[[4]] = four.rate.recon
 misse.results.list[[5]] = five.rate.recon
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  plot.misse.states(misse.results.list, rate.param="net.div", show.tip.label=TRUE, type="phylogram",
 #                    fsize=.25, legend="none")
 
@@ -77,32 +77,46 @@ misse.results.list[[5]] = five.rate.recon
 plot.misse.states(misse.results.list, rate.param="net.div", show.tip.label=TRUE, type="phylogram",
                   fsize=.25, legend="none")
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  turnover <- c(1,2)
 #  eps <- c(0,0)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  two.rate <- MiSSE(phy, f=1, turnover=turnover, eps=eps, fixed.eps=0.9)
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 two.rate
 three.rate
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 expected.transitions.two <- 0.004 * sum(two.rate$phy$edge.length)
 expected.transitions.two
 expected.transitions.three <- 0.131 * sum(three.rate$phy$edge.length)
 expected.transitions.three
 
-## ---- eval=TRUE----------------------------------------------------------
+## ---- eval=TRUE---------------------------------------------------------------
 load("misse.support.Rsave")
 two.rate.support$ci[,"q0"]
 three.rate.support$ci[,"q0"]
 
-## ---- eval=FALSE---------------------------------------------------------
-#  model.set <- MiSSEGreedy(tree, possible.combos=generateMiSSEGreedyCombinations(4), n.cores=4)
+## ---- eval=FALSE--------------------------------------------------------------
+#  tree <- rcoal(50)
+#  potential.combos <- generateMiSSEGreedyCombinations(max.param=4, vary.both=TRUE)
+#  
+#  #run on one core:
+#  model.set <- MiSSEGreedy(tree, possible.combos=potential.combos, n.cores=1)
+#  
+#  #run on all available cores: (commented out because CRAN does not allow this in examples)
+#  model.set <- MiSSEGreedy(phy, potential.combos, n.cores=parallel::detectCores(), f=1)
+#  
+#  AICc <- unlist(lapply(result, "[[", "AICc"))
+#  deltaAICc <- AICc-min(AICc)
+#  print(length(result))
+#  
+#  # Yes, [[ is a function you can lapply, and the name of elements within each list
+#  # object can be arguments. Life is awesome.
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  model.recons <- as.list(1:length(model.set))
 #  for (model_index in 1:length(model.set)) {
 #      nturnover <- length(unique(model.set[[model_index]]$turnover))
@@ -114,6 +128,6 @@ three.rate.support$ci[,"q0"]
 #      model.recons[[model_index]] <- misse_recon
 #  }
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  tip.rates <- GetModelAveRates(model.recons, type = c("tips"))
 
