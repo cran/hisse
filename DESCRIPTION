@@ -1,6 +1,6 @@
 Package: hisse
-Version: 2.1.5
-Date: 2021-11-9
+Version: 2.1.6
+Date: 2021-11-12
 Title: Hidden State Speciation and Extinction
 Authors@R: c(person("Jeremy", "Beaulieu", role=c("aut", "cre"),
                      email = "jmbeauli@uark.edu"),
@@ -17,11 +17,11 @@ Description: Sets up and executes a HiSSE model (Hidden State Speciation and Ext
 License: GPL (>= 2)
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2021-11-09 18:44:24 UTC; jeremybeaulieu
+Packaged: 2021-11-15 22:08:06 UTC; jeremybeaulieu
 Author: Jeremy Beaulieu [aut, cre],
   Brian O'Meara [aut],
   Daniel Caetano [aut],
   James Boyko [aut],
   Thais Vasconcelos [aut]
 Repository: CRAN
-Date/Publication: 2021-11-11 18:00:02 UTC
+Date/Publication: 2021-11-16 08:20:02 UTC
