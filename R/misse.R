@@ -50,6 +50,14 @@ MiSSE <- function(phy, f=1, turnover=c(1,2), eps=c(1,2), fixed.eps=NULL, conditi
     
     setDTthreads(threads=dt.threads)
     
+    if(!is.ultrametric(phy) & includes.fossils == FALSE){
+        warning("Tree is not ultrametric. Used force.ultrametric() function to coerce the tree to be ultrametric - see note above.")
+        edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
+        if(any(edge_details$type == "extinct_tip")){
+            phy <- force.ultrametric(phy)
+        }
+    }
+    
     if(sann == FALSE & is.null(starting.vals)){
         warning("You have chosen to rely on the internal starting points that generally work but does not guarantee finding the MLE.")
     }
@@ -305,7 +313,7 @@ MiSSE <- function(phy, f=1, turnover=c(1,2), eps=c(1,2), fixed.eps=NULL, conditi
         }else{
             cat("Finished. Beginning subplex routine...", "\n")
             out = subplex(ip, fn=DevOptimizeMiSSE, control=list(reltol=max.tol, parscale=rep(0.1, length(ip))), pars=pars, dat.tab=dat.tab, gen=gen, hidden.states=hidden.states, fixed.eps=fixed.eps, nb.tip=nb.tip, nb.node=nb.node, condition.on.survival=condition.on.survival, root.type=root.type, root.p=root.p, np=np, ode.eps=ode.eps, fossil.taxa=fossil.taxa, fix.type=fix.type, strat.cache=strat.cache)
-            sann.counts <- out$counts
+            sann.counts <- NULL
             solution <- numeric(length(pars))
             solution[] <- c(exp(out$par), 0)[pars]
             loglik = -out$value
@@ -503,6 +511,61 @@ MiSSEGreedy <- function(phy, f=1, possible.combos = generateMiSSEGreedyCombinati
         }
     }
 }
+
+SummarizeMiSSEGreedy <- function(greedy.result, min.weight=0.01, n.cores=1, recon=TRUE) {
+	parameters <- c("turnover", "net.div", "speciation", "extinction", "extinction.fraction")
+	AICc_weights <- GetAICWeights(greedy.result, criterion="AICc")
+	good_enough <- which(AICc_weights>min.weight)
+	best_model <- which.max(AICc_weights)
+	rates <- NA
+	if(recon) {
+		recons <- list()
+		rates <- array(dim=c(ape::Ntip(greedy.result[[1]]$phy) + ape::Nnode(greedy.result[[1]]$phy), length(parameters), length(good_enough)+2), dimnames=list(c(greedy.result[[1]]$phy$tip.label, (1+ape::Ntip(greedy.result[[1]]$phy)):(ape::Ntip(greedy.result[[1]]$phy) + ape::Nnode(greedy.result[[1]]$phy))), parameters, c(good_enough, "model_average", "best")))
+		for(i in sequence(length(good_enough))){
+			local_model <- greedy.result[[good_enough[i]]]
+			
+			recons[[i]] <- MarginReconMiSSE(phy=local_model$phy, f=local_model$f, pars=local_model$solution[local_model$index.par], hidden.states=local_model$hidden.states, fixed.eps=local_model$fixed.eps, condition.on.survival=local_model$condition.on.survival, root.type=local_model$root.type, root.p=local_model$root.p, includes.fossils=local_model$includes.fossils, k.samples=local_model$k.samples, strat.intervals=local_model$strat.intervals, AIC=local_model$AICc, get.tips.only=FALSE, verbose=FALSE, n.cores=n.cores)
+		}
+
+		for(param_index in sequence(length(parameters))) {
+			rate.param <- parameters[param_index]
+			for(i in sequence(length(good_enough))){
+				rates.tips <- ConvertManyToRate(recons[i], rate.param, "tip.mat")
+				rates.internal <- ConvertManyToRate(recons[i], rate.param, "node.mat")
+				rates[,param_index,i] <- c(rates.tips, rates.internal)
+				if(good_enough[i]==best_model) {
+					rates[,param_index,2+length(good_enough)] <- c(rates.tips, rates.internal)
+				}
+				
+			}
+			rates.tips.avg <- ConvertManyToRate(recons, rate.param, "tip.mat")
+			rates.internal.avg <- ConvertManyToRate(recons, rate.param, "node.mat")
+			rates[,param_index,1+length(good_enough)] <- c(rates.tips.avg, rates.internal.avg)
+		}
+	}
+	overview <- data.frame(model_number=sequence(length(greedy.result)))
+	overview$lnL <- unlist(lapply(greedy.result, "[[", "loglik"))
+	overview$AICc <- unlist(lapply(greedy.result, "[[", "AICc"))
+	overview$deltaAICc <- overview$AICc-min(overview$AICc)
+	overview$AIC <- unlist(lapply(greedy.result, "[[", "AIC"))
+	overview$hidden.states <- unlist(lapply(greedy.result, "[[", "hidden.states"))
+	overview$n.turnover <- NA
+	overview$n.eps <- NA
+	overview$n.transition_rate <- 1
+	overview$n.freeparam <- NA
+	for(i in sequence(length(greedy.result))) {
+		overview$n.turnover[i] <- max(greedy.result[[i]]$turnover)
+		overview$n.eps[i] <- max(greedy.result[[i]]$eps)
+		overview$n.freeparam[i] <- overview$n.turnover[i]+overview$n.eps[i]+1
+	}
+	overview$AICc_weights <- AICc_weights
+	overview$Included_In_Model_Average <- FALSE
+	overview$Included_In_Model_Average[good_enough] <- TRUE
+	overview$elapsed.minutes <- unlist(lapply(greedy.result, "[[", "elapsed.minutes"))
+
+	return(list(overview=overview, rates=rates))
+}
+
 
 
 generateMiSSEGreedyCombinations <- function(max.param=52, turnover.tries=sequence(26), eps.tries=sequence(26), fixed.eps.tries=NA, vary.both=TRUE, shuffle.start=TRUE) {
