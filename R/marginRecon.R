@@ -331,6 +331,14 @@ MarginReconHiSSE <- function(phy, data, f, pars, hidden.states=1, condition.on.s
     
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
+    if(!is.ultrametric(phy) & includes.fossils == FALSE){
+        warning("Tree is not ultrametric. Used force.ultrametric() function to coerce the tree to be ultrametric - see note above.")
+        edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
+        if(any(edge_details$type == "extinct_tip")){
+            phy <- force.ultrametric(phy)
+        }
+    }
+
     if(!is.null(root.p)) {
         root.type="user"
         root.p <- root.p / sum(root.p)
@@ -358,14 +366,14 @@ MarginReconHiSSE <- function(phy, data, f, pars, hidden.states=1, condition.on.s
         gen <- FindGenerations(phy)
         data.new <- data.frame(data[,2], data[,2], row.names=data[,1])
         data.new <- data.new[phy$tip.label,]
-        dat.tab <- OrganizeDataHiSSE(data=data.new, phy=phy, f=f, hidden.states=TRUE)
+        dat.tab <- OrganizeDataHiSSE(data=data.new, phy=phy, f=f, hidden.states=TRUE, includes.fossils=includes.fossils)
         #These are all inputs for generating starting values:
         fossil.taxa <- which(dat.tab$branch.type == 1)
     }else{
         gen <- FindGenerations(phy)
         data.new <- data.frame(data[,2], data[,2], row.names=data[,1])
         data.new <- data.new[phy$tip.label,]
-        dat.tab <- OrganizeDataHiSSE(data=data.new, phy=phy, f=f, hidden.states=TRUE)
+        dat.tab <- OrganizeDataHiSSE(data=data.new, phy=phy, f=f, hidden.states=TRUE, includes.fossils=includes.fossils)
         fossil.taxa <- NULL
         fix.type <- NULL
     }
@@ -500,6 +508,14 @@ MarginReconMuHiSSE <- function(phy, data, f, pars, hidden.states=1, condition.on
     
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
+    if(!is.ultrametric(phy) & includes.fossils == FALSE){
+        warning("Tree is not ultrametric. Used force.ultrametric() function to coerce the tree to be ultrametric - see note above.")
+        edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
+        if(any(edge_details$type == "extinct_tip")){
+            phy <- force.ultrametric(phy)
+        }
+    }
+
     if(!is.null(root.p)) {
         root.type="user"
         root.p <- root.p / sum(root.p)
@@ -806,6 +822,14 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=1, fixed.eps=NULL, cond
     
     if( !is.null(phy$node.label) ) phy$node.label <- NULL
     
+    if(!is.ultrametric(phy) & includes.fossils == FALSE){
+        warning("Tree is not ultrametric. Used force.ultrametric() function to coerce the tree to be ultrametric - see note above.")
+        edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
+        if(any(edge_details$type == "extinct_tip")){
+            phy <- force.ultrametric(phy)
+        }
+    }
+
     if(!is.null(root.p)) {
         root.type="user"
         root.p <- root.p / sum(root.p)
@@ -829,7 +853,7 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=1, fixed.eps=NULL, cond
             phy <- AddKNodes(phy, k.samples)
             fix.type <- GetKSampleMRCA(phy, k.samples)
             gen <- FindGenerations(phy)
-            dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=FALSE, intervening.intervals=NULL)
+            dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=FALSE, intervening.intervals=NULL, includes.fossils=includes.fossils)
             edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
             fossil.taxa <- edge_details$tipward_node[which(edge_details$type == "extinct_tip")]
         }else{
@@ -845,7 +869,7 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=1, fixed.eps=NULL, cond
                 phy <- AddKNodes(phy, k.samples)
                 fix.type <- GetKSampleMRCA(phy, k.samples, strat.intervals=TRUE)
                 gen <- FindGenerations(phy)
-                dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=TRUE, intervening.intervals=strat.cache$intervening.intervals)
+                dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=TRUE, intervening.intervals=strat.cache$intervening.intervals, includes.fossils=includes.fossils)
                 edge_details <- GetEdgeDetails(phy, includes.intervals=TRUE, intervening.intervals=strat.cache$intervening.intervals)
                 fossil.taxa <- edge_details$tipward_node[which(edge_details$type == "extinct_tip" | edge_details$type == "k_extinct_interval")]
             }else{
@@ -853,7 +877,7 @@ MarginReconMiSSE <- function(phy, f, pars, hidden.states=1, fixed.eps=NULL, cond
                 fix.type <- NULL
                 strat.cache <- NULL
                 gen <- FindGenerations(phy)
-                dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=FALSE, intervening.intervals=NULL)
+                dat.tab <- OrganizeDataMiSSE(phy=phy, f=f, hidden.states=hidden.states, includes.intervals=FALSE, intervening.intervals=NULL, includes.fossils=includes.fossils)
                 #These are all inputs for generating starting values:
                 edge_details <- GetEdgeDetails(phy, includes.intervals=FALSE, intervening.intervals=NULL)
                 fossil.taxa <- edge_details$tipward_node[which(edge_details$type == "extinct_tip")]
